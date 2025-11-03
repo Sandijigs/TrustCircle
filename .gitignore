@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables (NEVER commit these!)
+.env
+.env.local
+.env*.local
+*.env
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Contract artifacts
+artifacts/
+cache/
+typechain-types/
+deployments.json
+gas-report.txt
+coverage/
+coverage.json
+
+# Hardhat
+artifacts-zk/
+cache-zk/
+
+# Testing
+.coverage_artifacts/
+.coverage_cache/
+.coverage_contracts/
+test-results/
+playwright-report/
+playwright/.cache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.qodo/

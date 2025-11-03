@@ -1,0 +1,41 @@
+{
+  "name": "@trustcircle/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TrustCircle smart contracts",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:unit": "hardhat test test/**/*.test.ts --exclude test/integration/** --exclude test/security/**",
+    "test:integration": "hardhat test test/integration/**/*.test.ts",
+    "test:security": "hardhat test test/security/**/*.test.ts",
+    "test:coverage": "hardhat coverage",
+    "test:gas": "REPORT_GAS=true hardhat test",
+    "deploy": "hardhat run scripts/deploy.ts",
+    "deploy:alfajores": "hardhat run scripts/deploy.ts --network alfajores",
+    "deploy:celo": "hardhat run scripts/deploy.ts --network celo",
+    "verify": "hardhat verify",
+    "clean": "hardhat clean",
+    "security:scan": "../../scripts/security-scan.sh",
+    "security:status": "ts-node ../../scripts/security-status.ts",
+    "emergency:pause": "ts-node ../../scripts/emergency-pause.ts",
+    "lint": "solhint 'contracts/**/*.sol'"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-viem": "^2.0.6",
+    "@openzeppelin/contracts": "^5.1.0",
+    "@openzeppelin/contracts-upgradeable": "^5.1.0",
+    "@openzeppelin/hardhat-upgrades": "^3.9.1",
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^22.10.0",
+    "chai": "^4.3.10",
+    "dotenv": "^16.4.7",
+    "eth-gas-reporter": "^0.2.27",
+    "hardhat": "^2.22.17",
+    "hardhat-gas-reporter": "^1.0.10",
+    "solidity-coverage": "^0.8.5",
+    "typescript": "^5.6.0"
+  }
+}

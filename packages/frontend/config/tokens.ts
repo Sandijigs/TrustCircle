@@ -1,0 +1,151 @@
+/**
+ * Mento Stablecoin Addresses on Celo
+ * Mento is Celo's native stablecoin protocol
+ */
+
+export interface Token {
+  address: `0x${string}`;
+  symbol: string;
+  name: string;
+  decimals: number;
+  icon?: string;
+}
+
+// Celo Mainnet (42220) Mento Stablecoins
+export const CELO_MAINNET_TOKENS: Record<string, Token> = {
+  cUSD: {
+    address: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
+    symbol: "cUSD",
+    name: "Celo Dollar",
+    decimals: 18,
+  },
+  cEUR: {
+    address: "0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73",
+    symbol: "cEUR",
+    name: "Celo Euro",
+    decimals: 18,
+  },
+  cREAL: {
+    address: "0xe8537a3d056DA446677B9E9d6c5dB704EaAb4787",
+    symbol: "cREAL",
+    name: "Celo Real",
+    decimals: 18,
+  },
+  CELO: {
+    address: "0x471EcE3750Da237f93B8E339c536989b8978a438",
+    symbol: "CELO",
+    name: "Celo Native Asset",
+    decimals: 18,
+  },
+};
+
+// Celo Alfajores Testnet (44787) Mento Stablecoins
+export const ALFAJORES_TESTNET_TOKENS: Record<string, Token> = {
+  cUSD: {
+    address: "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
+    symbol: "cUSD",
+    name: "Celo Dollar (Testnet)",
+    decimals: 18,
+  },
+  cEUR: {
+    address: "0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
+    symbol: "cEUR",
+    name: "Celo Euro (Testnet)",
+    decimals: 18,
+  },
+  cREAL: {
+    address: "0xE4D517785D091D3c54818832dB6094bcc2744545",
+    symbol: "cREAL",
+    name: "Celo Real (Testnet)",
+    decimals: 18,
+  },
+  CELO: {
+    address: "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
+    symbol: "CELO",
+    name: "Celo Native Asset (Testnet)",
+    decimals: 18,
+  },
+};
+
+// ERC20 ABI (minimal - just what we need for balance and transfers)
+export const ERC20_ABI = [
+  {
+    constant: true,
+    inputs: [{ name: "_owner", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "balance", type: "uint256" }],
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_to", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ name: "", type: "bool" }],
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "symbol",
+    outputs: [{ name: "", type: "string" }],
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "name",
+    outputs: [{ name: "", type: "string" }],
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_spender", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "approve",
+    outputs: [{ name: "", type: "bool" }],
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [
+      { name: "_owner", type: "address" },
+      { name: "_spender", type: "address" },
+    ],
+    name: "allowance",
+    outputs: [{ name: "", type: "uint256" }],
+    type: "function",
+  },
+] as const;
+
+// Helper function to get tokens for a specific chain
+export function getTokensForChain(chainId: number): Record<string, Token> {
+  switch (chainId) {
+    case 42220: // Celo Mainnet
+      return CELO_MAINNET_TOKENS;
+    case 44787: // Alfajores Testnet
+      return ALFAJORES_TESTNET_TOKENS;
+    default:
+      return ALFAJORES_TESTNET_TOKENS; // Default to testnet
+  }
+}
+
+// Get specific token address for a chain
+export function getTokenAddress(
+  chainId: number,
+  symbol: "cUSD" | "cEUR" | "cREAL" | "CELO"
+): `0x${string}` {
+  const tokens = getTokensForChain(chainId);
+  return tokens[symbol]?.address || tokens.cUSD.address;
+}

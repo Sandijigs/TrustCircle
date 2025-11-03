@@ -1,0 +1,255 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run weekly security scans
+    - cron: '0 0 * * 0'
+
+jobs:
+  dependency-check:
+    name: Dependency Vulnerability Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run npm audit (contracts)
+        working-directory: packages/contracts
+        run: |
+          npm audit --json > audit-contracts.json || true
+          npm audit
+        continue-on-error: true
+      
+      - name: Run npm audit (frontend)
+        working-directory: packages/frontend
+        run: |
+          npm audit --json > audit-frontend.json || true
+          npm audit
+        continue-on-error: true
+      
+      - name: Upload audit results
+        uses: actions/upload-artifact@v3
+        with:
+          name: audit-reports
+          path: |
+            packages/contracts/audit-contracts.json
+            packages/frontend/audit-frontend.json
+
+  slither-analysis:
+    name: Slither Static Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Compile contracts
+        working-directory: packages/contracts
+        run: npx hardhat compile
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install Slither
+        run: pip3 install slither-analyzer
+      
+      - name: Run Slither
+        working-directory: packages/contracts
+        run: |
+          slither . --json slither-report.json || true
+          slither . --print human-summary
+        continue-on-error: true
+      
+      - name: Upload Slither report
+        uses: actions/upload-artifact@v3
+        with:
+          name: slither-report
+          path: packages/contracts/slither-report.json
+
+  solhint-check:
+    name: Solhint Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Solhint
+        working-directory: packages/contracts
+        run: |
+          npx solhint 'contracts/**/*.sol' -f json > solhint-report.json || true
+          npx solhint 'contracts/**/*.sol'
+        continue-on-error: true
+      
+      - name: Upload Solhint report
+        uses: actions/upload-artifact@v3
+        with:
+          name: solhint-report
+          path: packages/contracts/solhint-report.json
+
+  test-coverage:
+    name: Test Coverage Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests with coverage
+        working-directory: packages/contracts
+        run: npx hardhat coverage
+      
+      - name: Check coverage threshold
+        working-directory: packages/contracts
+        run: |
+          COVERAGE=$(node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync('coverage/coverage-summary.json')); console.log(data.total.lines.pct);")
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "❌ Coverage is below 90%"
+            exit 1
+          fi
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: packages/contracts/coverage/
+
+  security-tests:
+    name: Security Test Suite
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run security tests
+        working-directory: packages/contracts
+        run: npx hardhat test test/security/SecurityTests.test.ts
+      
+      - name: Run integration tests
+        working-directory: packages/contracts
+        run: npx hardhat test test/integration/FullLoanLifecycle.test.ts
+
+  frontend-security:
+    name: Frontend Security Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint security rules
+        working-directory: packages/frontend
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx
+        continue-on-error: true
+      
+      - name: Check for exposed secrets
+        run: |
+          if grep -r "PRIVATE_KEY\|SECRET\|PASSWORD" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" packages/frontend/; then
+            echo "❌ Found potential exposed secrets"
+            exit 1
+          fi
+          echo "✅ No exposed secrets found"
+
+  report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [dependency-check, slither-analysis, solhint-check, test-coverage, security-tests, frontend-security]
+    if: always()
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Generate summary
+        run: |
+          echo "# Security Scan Summary" > security-summary.md
+          echo "" >> security-summary.md
+          echo "**Date:** $(date)" >> security-summary.md
+          echo "**Commit:** ${{ github.sha }}" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "## Results" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "- ✅ Dependency Check: Completed" >> security-summary.md
+          echo "- ✅ Slither Analysis: Completed" >> security-summary.md
+          echo "- ✅ Solhint Linting: Completed" >> security-summary.md
+          echo "- ✅ Test Coverage: Completed" >> security-summary.md
+          echo "- ✅ Security Tests: Completed" >> security-summary.md
+          echo "- ✅ Frontend Security: Completed" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "See individual job logs for details." >> security-summary.md
+      
+      - name: Upload summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-summary
+          path: security-summary.md
+
+  notify:
+    name: Notify on Security Issues
+    runs-on: ubuntu-latest
+    needs: [dependency-check, slither-analysis, security-tests]
+    if: failure()
+    
+    steps:
+      - name: Send notification
+        run: echo "⚠️ Security checks failed! Review the logs."
+        # In production, send to Slack/Discord/Email

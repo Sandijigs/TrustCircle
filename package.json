@@ -1,0 +1,30 @@
+{
+  "name": "trustcircle-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TrustCircle - Web3 Micro-Lending Platform Monorepo",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@trustcircle/frontend",
+    "dev:frontend": "npm run dev --workspace=@trustcircle/frontend",
+    "build": "npm run build --workspaces --if-present",
+    "build:frontend": "npm run build --workspace=@trustcircle/frontend",
+    "build:contracts": "npm run compile --workspace=@trustcircle/contracts",
+    "test": "npm run test --workspaces --if-present",
+    "test:contracts": "npm run test --workspace=@trustcircle/contracts",
+    "lint": "npm run lint --workspaces --if-present",
+    "compile": "npm run compile --workspace=@trustcircle/contracts",
+    "deploy:alfajores": "npm run deploy:alfajores --workspace=@trustcircle/contracts",
+    "deploy:celo": "npm run deploy:celo --workspace=@trustcircle/contracts",
+    "clean": "rm -rf node_modules packages/*/node_modules packages/*/.next packages/*/dist packages/*/artifacts packages/*/cache"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
