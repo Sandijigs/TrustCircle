@@ -5,8 +5,19 @@ package-lock.json
 # Environment variables (NEVER commit these!)
 .env
 .env.local
+.env.*.local
 .env*.local
 *.env
+**/.env
+**/.env.local
+**/.env.*.local
+packages/*/.env
+packages/*/.env.local
+packages/*/.env.*.local
+
+# Deployment addresses (contains deployed contract addresses)
+deployments.json
+**/deployments.json
 
 # Build outputs
 .next/
@@ -19,10 +30,11 @@ build/
 artifacts/
 cache/
 typechain-types/
-deployments.json
 gas-report.txt
 coverage/
 coverage.json
+.openzeppelin/
+**/.openzeppelin/
 
 # Hardhat
 artifacts-zk/
