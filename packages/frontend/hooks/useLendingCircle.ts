@@ -78,7 +78,7 @@ export function useLendingCircle(circleId?: number) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const contractAddress = process.env.NEXT_PUBLIC_LENDING_CIRCLE_ADDRESS as `0x${string}`;
+  const contractAddress = LENDING_CIRCLE_ADDRESS
 
   // Read circle data
   const { data: circleData, refetch: refetchCircle } = useContractRead({
@@ -358,7 +358,7 @@ export function useUserCircles() {
   const [circles, setCircles] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const contractAddress = process.env.NEXT_PUBLIC_LENDING_CIRCLE_ADDRESS as `0x${string}`;
+  const contractAddress = LENDING_CIRCLE_ADDRESS
 
   useEffect(() => {
     if (!address) return;

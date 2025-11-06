@@ -16,18 +16,14 @@ import {
   calculateAvailableLiquidity,
   calculateShareValue,
 } from '@/lib/calculations/interestRates';
+import { LENDING_POOL } from '@/config/contracts';
+import { ERC20_ABI } from '@/config/tokens';
 
-// Contract ABIs (simplified - import from generated types in production)
-const LENDING_POOL_ABI = [
-  'function deposit(address asset, uint256 amount) returns (uint256 shares)',
-  'function withdraw(address asset, uint256 shares) returns (uint256 amount)',
-  'function pools(address) view returns (tuple(address asset, uint256 totalDeposits, uint256 totalBorrowed, uint256 totalReserves, uint256 totalShares, uint256 lastUpdateTimestamp, uint256 accumulatedInterest, bool isActive))',
-  'function userDeposits(address user, address asset) view returns (tuple(uint256 shares, uint256 lastDepositTime, uint256 totalDeposited, uint256 totalWithdrawn))',
-  'function calculateLenderAPY(address asset) view returns (uint256)',
-  'function calculateBorrowAPY(address asset) view returns (uint256)',
-] as const;
+// Get contract configuration
+const { address: LENDING_POOL_ADDRESS, abi: LENDING_POOL_ABI } = LENDING_POOL;
 
-const ERC20_ABI = [
+// Simplified ERC20 ABI for approvals
+const ERC20_APPROVE_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function allowance(address owner, address spender) view returns (uint256)',
   'function balanceOf(address account) view returns (uint256)',
@@ -78,7 +74,7 @@ export function useLendingPool(assetAddress: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const poolAddress = process.env.NEXT_PUBLIC_LENDING_POOL_ADDRESS as `0x${string}`;
+  const poolAddress = LENDING_POOL_ADDRESS
 
   // Read pool data
   const { data: poolData, refetch: refetchPool } = useContractRead({

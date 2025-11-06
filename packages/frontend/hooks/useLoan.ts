@@ -33,19 +33,14 @@ import {
   daysToMonths,
   formatBPS,
 } from '@/lib/calculations/loanCalculator';
+import { LOAN_MANAGER, getContract } from '@/config/contracts';
+import { ERC20_ABI } from '@/config/tokens';
 
-const LOAN_MANAGER_ABI = [
-  'function requestLoan(address asset, uint256 amount, uint256 duration, uint8 frequency, uint256 circleId) returns (uint256)',
-  'function makePayment(uint256 loanId, uint256 amount)',
-  'function declarDefault(uint256 loanId)',
-  'function cancelLoan(uint256 loanId)',
-  'function getLoan(uint256 loanId) view returns (tuple(uint256 id, address borrower, address asset, uint256 principalAmount, uint256 interestRate, uint256 duration, uint8 frequency, uint256 installmentAmount, uint256 totalInstallments, uint256 paidInstallments, uint256 totalRepaid, uint256 interestPaid, uint256 startTime, uint256 nextPaymentDue, uint8 status, bool hasCollateral, uint256 latePaymentCount, uint256 circleId))',
-  'function getBorrowerLoans(address borrower) view returns (uint256[])',
-  'function isPaymentLate(uint256 loanId) view returns (bool isLate, uint256 daysLate)',
-  'function activeLoanCount(address) view returns (uint256)',
-] as const;
+// Get contract configuration
+const { address: LOAN_MANAGER_ADDRESS, abi: LOAN_MANAGER_ABI } = LOAN_MANAGER;
 
-const ERC20_ABI = [
+// Simplified ERC20 ABI for approvals
+const ERC20_APPROVE_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function allowance(address owner, address spender) view returns (uint256)',
   'function balanceOf(address account) view returns (uint256)',
@@ -58,11 +53,9 @@ export function useLoan(loanId?: bigint) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loanManagerAddress = process.env.NEXT_PUBLIC_LOAN_MANAGER_ADDRESS as `0x${string}`;
-
   // Read specific loan data
   const { data: loanData, refetch: refetchLoan } = useContractRead({
-    address: loanManagerAddress,
+    address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'getLoan',
     args: loanId ? [loanId] : undefined,
@@ -72,7 +65,7 @@ export function useLoan(loanId?: bigint) {
 
   // Read all borrower's loans
   const { data: borrowerLoanIds, refetch: refetchBorrowerLoans } = useContractRead({
-    address: loanManagerAddress,
+    address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'getBorrowerLoans',
     args: address ? [address] : undefined,
@@ -82,7 +75,7 @@ export function useLoan(loanId?: bigint) {
 
   // Read active loan count
   const { data: activeLoanCount } = useContractRead({
-    address: loanManagerAddress,
+    address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'activeLoanCount',
     args: address ? [address] : undefined,
@@ -92,7 +85,7 @@ export function useLoan(loanId?: bigint) {
 
   // Read payment late status
   const { data: lateStatus } = useContractRead({
-    address: loanManagerAddress,
+    address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'isPaymentLate',
     args: loanId ? [loanId] : undefined,
@@ -102,25 +95,25 @@ export function useLoan(loanId?: bigint) {
 
   // Contract write functions
   const { writeAsync: requestLoanWrite } = useContractWrite({
-    address: loanManagerAddress,
+    address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'requestLoan',
   });
 
   const { writeAsync: makePaymentWrite } = useContractWrite({
-    address: loanManagerAddress,
+    address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'makePayment',
   });
 
   const { writeAsync: cancelLoanWrite } = useContractWrite({
-    address: loanManagerAddress,
+    address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'cancelLoan',
   });
 
   const { writeAsync: declarDefaultWrite } = useContractWrite({
-    address: loanManagerAddress,
+    address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'declarDefault',
   });
@@ -361,7 +354,7 @@ export function useLoan(loanId?: bigint) {
           method: 'eth_call',
           params: [{
             to: assetAddress,
-            data: `0xdd62ed3e${address.slice(2).padStart(64, '0')}${loanManagerAddress.slice(2).padStart(64, '0')}`,
+            data: `0xdd62ed3e${address.slice(2).padStart(64, '0')}${LOAN_MANAGER_ADDRESS.slice(2).padStart(64, '0')}`,
           }, 'latest'],
         });
 
@@ -374,7 +367,7 @@ export function useLoan(loanId?: bigint) {
             params: [{
               from: address,
               to: assetAddress,
-              data: `0x095ea7b3${loanManagerAddress.slice(2).padStart(64, '0')}${amountBN.toString(16).padStart(64, '0')}`,
+              data: `0x095ea7b3${LOAN_MANAGER_ADDRESS.slice(2).padStart(64, '0')}${amountBN.toString(16).padStart(64, '0')}`,
             }],
           });
 
@@ -401,7 +394,7 @@ export function useLoan(loanId?: bigint) {
         setIsLoading(false);
       }
     },
-    [address, loanManagerAddress, makePaymentWrite, refetchLoan, refetchBorrowerLoans]
+    [address, LOAN_MANAGER_ADDRESS, makePaymentWrite, refetchLoan, refetchBorrowerLoans]
   );
 
   /**
@@ -499,7 +492,7 @@ export function useLoans(loanIds: bigint[]) {
   const [loans, setLoans] = useState<LoanDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const loanManagerAddress = process.env.NEXT_PUBLIC_LOAN_MANAGER_ADDRESS as `0x${string}`;
+  const LOAN_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_LOAN_MANAGER_ADDRESS as `0x${string}`;
 
   useEffect(() => {
     const fetchLoans = async () => {
@@ -515,7 +508,7 @@ export function useLoans(loanIds: bigint[]) {
           const data = await window.ethereum?.request({
             method: 'eth_call',
             params: [{
-              to: loanManagerAddress,
+              to: LOAN_MANAGER_ADDRESS,
               data: `0xc92aecc4${loanId.toString(16).padStart(64, '0')}`, // getLoan(uint256)
             }, 'latest'],
           });
@@ -535,7 +528,7 @@ export function useLoans(loanIds: bigint[]) {
     };
 
     fetchLoans();
-  }, [loanIds, loanManagerAddress]);
+  }, [loanIds, LOAN_MANAGER_ADDRESS]);
 
   return { loans, isLoading };
 }

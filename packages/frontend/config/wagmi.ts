@@ -1,6 +1,7 @@
 import { http, createConfig, cookieStorage, createStorage } from "wagmi";
 import { celo, celoAlfajores } from "wagmi/chains";
 import { walletConnect, injected, coinbaseWallet } from "wagmi/connectors";
+import { defineChain } from "viem";
 
 // Get environment variables
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "6b87a3c69cbd8b52055d7aef763148d6";
@@ -8,6 +9,33 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "6b87a3c69
 if (!projectId) {
   throw new Error("NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is not set");
 }
+
+// Define Celo Sepolia Testnet (NEW)
+export const celoSepolia = defineChain({
+  id: 11142220,
+  name: "Celo Sepolia Testnet",
+  network: "celo-sepolia",
+  nativeCurrency: {
+    name: "CELO",
+    symbol: "CELO",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://forno.celo-sepolia.celo-testnet.org"],
+    },
+    public: {
+      http: ["https://forno.celo-sepolia.celo-testnet.org"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Celo Sepolia Explorer",
+      url: "https://celo-sepolia.blockscout.com",
+    },
+  },
+  testnet: true,
+});
 
 // Metadata for WalletConnect
 export const metadata = {
@@ -19,7 +47,7 @@ export const metadata = {
 
 // Create wagmi config
 export const config = createConfig({
-  chains: [celoAlfajores, celo],
+  chains: [celoSepolia, celoAlfajores, celo],
   connectors: [
     walletConnect({
       projectId,
@@ -39,6 +67,7 @@ export const config = createConfig({
   }),
   ssr: true,
   transports: {
+    [celoSepolia.id]: http(process.env.NEXT_PUBLIC_CELO_SEPOLIA_RPC_URL || "https://forno.celo-sepolia.celo-testnet.org"),
     [celoAlfajores.id]: http(process.env.NEXT_PUBLIC_ALFAJORES_RPC_URL),
     [celo.id]: http(process.env.NEXT_PUBLIC_CELO_RPC_URL),
   },

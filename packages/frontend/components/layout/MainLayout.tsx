@@ -22,7 +22,7 @@
 'use client';
 
 import { useState, ReactNode } from 'react';
-import { Navbar } from './Navbar';
+import { ConnectedNavbar } from './ConnectedNavbar';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
 import { NavbarUser, NetworkInfo } from '@/types/components';
@@ -69,11 +69,7 @@ export function MainLayout({
       </a>
 
       {/* Navbar */}
-      <Navbar
-        user={user}
-        network={network}
-        onConnect={onConnect}
-        onDisconnect={onDisconnect}
+      <ConnectedNavbar
         onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 

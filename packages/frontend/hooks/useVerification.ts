@@ -90,7 +90,7 @@ const VERIFICATION_SBT_ABI = [
 ] as const;
 
 // Contract address (update with actual deployed address)
-const VERIFICATION_SBT_ADDRESS = process.env.NEXT_PUBLIC_VERIFICATION_SBT_ADDRESS as `0x${string}`;
+const VERIFICATION_SBT_ADDRESS = VERIFICATION_SBT_ADDRESS
 
 export function useVerification() {
   const { address, isConnected } = useAccount();

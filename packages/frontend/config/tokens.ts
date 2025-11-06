@@ -39,30 +39,58 @@ export const CELO_MAINNET_TOKENS: Record<string, Token> = {
   },
 };
 
-// Celo Alfajores Testnet (44787) Mento Stablecoins
+// Celo Sepolia Testnet (11142220) Mento Stablecoins - NEW TESTNET
+export const CELO_SEPOLIA_TOKENS: Record<string, Token> = {
+  cUSD: {
+    address: "0xdE9e4C3ce781b4bA68120d6261cbad65ce0aB00b",
+    symbol: "cUSD",
+    name: "Celo Dollar (Sepolia)",
+    decimals: 18,
+  },
+  cEUR: {
+    address: "0xA99dC247d6b7B2E3ab48a1fEE101b83cD6aCd82a",
+    symbol: "cEUR",
+    name: "Celo Euro (Sepolia)",
+    decimals: 18,
+  },
+  cREAL: {
+    address: "0x2294298942fdc79417DE9E0D740A4957E0e7783a",
+    symbol: "cREAL",
+    name: "Celo Real (Sepolia)",
+    decimals: 18,
+  },
+  CELO: {
+    address: "0x471EcE3750Da237f93B8E339c536989b8978a438", // Using mainnet address for now
+    symbol: "CELO",
+    name: "Celo Native Asset (Sepolia)",
+    decimals: 18,
+  },
+};
+
+// Celo Alfajores Testnet (44787) Mento Stablecoins - LEGACY
 export const ALFAJORES_TESTNET_TOKENS: Record<string, Token> = {
   cUSD: {
     address: "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
     symbol: "cUSD",
-    name: "Celo Dollar (Testnet)",
+    name: "Celo Dollar (Alfajores)",
     decimals: 18,
   },
   cEUR: {
     address: "0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
     symbol: "cEUR",
-    name: "Celo Euro (Testnet)",
+    name: "Celo Euro (Alfajores)",
     decimals: 18,
   },
   cREAL: {
     address: "0xE4D517785D091D3c54818832dB6094bcc2744545",
     symbol: "cREAL",
-    name: "Celo Real (Testnet)",
+    name: "Celo Real (Alfajores)",
     decimals: 18,
   },
   CELO: {
     address: "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
     symbol: "CELO",
-    name: "Celo Native Asset (Testnet)",
+    name: "Celo Native Asset (Alfajores)",
     decimals: 18,
   },
 };
@@ -134,10 +162,12 @@ export function getTokensForChain(chainId: number): Record<string, Token> {
   switch (chainId) {
     case 42220: // Celo Mainnet
       return CELO_MAINNET_TOKENS;
-    case 44787: // Alfajores Testnet
+    case 11142220: // Celo Sepolia Testnet (NEW)
+      return CELO_SEPOLIA_TOKENS;
+    case 44787: // Alfajores Testnet (LEGACY)
       return ALFAJORES_TESTNET_TOKENS;
     default:
-      return ALFAJORES_TESTNET_TOKENS; // Default to testnet
+      return CELO_SEPOLIA_TOKENS; // Default to new testnet
   }
 }
 
