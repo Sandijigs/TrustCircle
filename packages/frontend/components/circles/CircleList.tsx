@@ -14,11 +14,12 @@ import { JoinCircleModal } from './JoinCircleModal';
 import type { Circle } from '@/hooks/useLendingCircle';
 
 interface CircleListProps {
-  circles: Circle[];
+  circles?: Circle[];
   isLoading?: boolean;
+  filter?: 'all' | 'my-circles';
 }
 
-export function CircleList({ circles, isLoading }: CircleListProps) {
+export function CircleList({ circles = [], isLoading, filter = 'all' }: CircleListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
