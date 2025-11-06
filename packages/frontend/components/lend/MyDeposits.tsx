@@ -21,10 +21,10 @@ interface Pool {
 }
 
 interface MyDepositsProps {
-  pools: Pool[];
+  pools?: Pool[];
 }
 
-export function MyDeposits({ pools }: MyDepositsProps) {
+export function MyDeposits({ pools = [] }: MyDepositsProps) {
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
