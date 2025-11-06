@@ -19,6 +19,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useContractRead, useContractWrite } from 'wagmi';
+import { VERIFICATION_SBT } from '@/config/contracts';
 
 // Verification levels
 export enum VerificationLevel {
@@ -44,53 +45,8 @@ export interface VerificationRequirements {
   action: string;
 }
 
-// Contract ABI (minimal for our needs)
-const VERIFICATION_SBT_ABI = [
-  {
-    inputs: [{ name: 'user', type: 'address' }],
-    name: 'isUserVerified',
-    outputs: [{ name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: 'user', type: 'address' }],
-    name: 'getVerificationLevel',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: 'user', type: 'address' }],
-    name: 'getVerification',
-    outputs: [{
-      components: [
-        { name: 'tokenId', type: 'uint256' },
-        { name: 'user', type: 'address' },
-        { name: 'level', type: 'uint256' },
-        { name: 'verifiedAt', type: 'uint256' },
-        { name: 'expiresAt', type: 'uint256' },
-        { name: 'provider', type: 'string' },
-        { name: 'verificationHash', type: 'string' },
-        { name: 'isActive', type: 'bool' },
-      ],
-      name: '',
-      type: 'tuple',
-    }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ name: 'user', type: 'address' }],
-    name: 'isExpired',
-    outputs: [{ name: '', type: 'bool' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-] as const;
-
-// Contract address (update with actual deployed address)
-const VERIFICATION_SBT_ADDRESS = VERIFICATION_SBT_ADDRESS
+// Get contract configuration from centralized config
+const { address: VERIFICATION_SBT_ADDRESS, abi: VERIFICATION_SBT_ABI } = VERIFICATION_SBT;
 
 export function useVerification() {
   const { address, isConnected } = useAccount();
