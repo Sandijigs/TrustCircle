@@ -40,10 +40,13 @@ import {
   formatBPS,
 } from '@/lib/calculations/loanCalculator';
 
+// Import token addresses from config
+import { CELO_SEPOLIA_TOKENS } from '@/config/tokens';
+
 const STABLECOINS = [
-  { value: process.env.NEXT_PUBLIC_CUSD_ADDRESS || '', label: 'cUSD', symbol: 'cUSD' },
-  { value: process.env.NEXT_PUBLIC_CEUR_ADDRESS || '', label: 'cEUR', symbol: 'cEUR' },
-  { value: process.env.NEXT_PUBLIC_CREAL_ADDRESS || '', label: 'cREAL', symbol: 'cREAL' },
+  { value: CELO_SEPOLIA_TOKENS.cUSD.address, label: 'cUSD', symbol: 'cUSD' },
+  { value: CELO_SEPOLIA_TOKENS.cEUR.address, label: 'cEUR', symbol: 'cEUR' },
+  { value: CELO_SEPOLIA_TOKENS.cREAL.address, label: 'cREAL', symbol: 'cREAL' },
 ];
 
 const LOAN_PURPOSES = [
