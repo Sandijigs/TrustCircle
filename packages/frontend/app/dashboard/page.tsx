@@ -9,18 +9,35 @@
  * - Activity feed
  */
 
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { Dashboard } from '@/components/dashboard';
 import { MainLayout } from '@/components/layout';
 
-export const metadata = {
-  title: 'Dashboard | TrustCircle',
-  description: 'View your lending activity, credit score, and manage your loans',
-};
-
 export default function DashboardPage() {
+  const router = useRouter();
+
+  // Navigation handlers for quick action buttons
+  const handleRequestLoan = () => {
+    router.push('/borrow');
+  };
+
+  const handleJoinCircle = () => {
+    router.push('/circles');
+  };
+
+  const handleDeposit = () => {
+    router.push('/lend');
+  };
+
   return (
     <MainLayout>
-      <Dashboard />
+      <Dashboard 
+        onRequestLoan={handleRequestLoan}
+        onJoinCircle={handleJoinCircle}
+        onDeposit={handleDeposit}
+      />
     </MainLayout>
   );
 }
