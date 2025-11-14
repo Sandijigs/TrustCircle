@@ -21,7 +21,9 @@
     "clean": "rm -rf node_modules packages/*/node_modules packages/*/.next packages/*/dist packages/*/artifacts packages/*/cache"
   },
   "devDependencies": {
-    "typescript": "^5.6.0"
+    "@types/node": "^24.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18.0.0",

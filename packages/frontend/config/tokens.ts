@@ -40,17 +40,18 @@ export const CELO_MAINNET_TOKENS: Record<string, Token> = {
 };
 
 // Celo Sepolia Testnet (11142220) Mento Stablecoins - NEW TESTNET
+// NOTE: Using mock test tokens for local testing since faucets don't provide stablecoins
 export const CELO_SEPOLIA_TOKENS: Record<string, Token> = {
   cUSD: {
-    address: "0xdE9e4C3ce781b4bA68120d6261cbad65ce0aB00b",
+    address: "0x8dd252909C90846956592867EaeE335E5c4BbCF5", // MOCK TOKEN - deployed locally
     symbol: "cUSD",
-    name: "Celo Dollar (Sepolia)",
+    name: "Test Celo Dollar (Mock)",
     decimals: 18,
   },
   cEUR: {
-    address: "0xA99dC247d6b7B2E3ab48a1fEE101b83cD6aCd82a",
+    address: "0x8dd252909C90846956592867EaeE335E5c4BbCF5", // MOCK TOKEN - your deployed cEUR
     symbol: "cEUR",
-    name: "Celo Euro (Sepolia)",
+    name: "Test Celo Euro (Mock)",
     decimals: 18,
   },
   cREAL: {

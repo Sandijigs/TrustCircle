@@ -1,4 +1,8 @@
 import { ethers, upgrades } from "hardhat";
+import * as dotenv from "dotenv";
+
+// Ensure .env is loaded
+dotenv.config();
 
 /**
  * TrustCircle Deployment Script
@@ -10,9 +14,27 @@ import { ethers, upgrades } from "hardhat";
 async function main() {
   console.log("🚀 Starting TrustCircle deployment...\n");
 
-  const [deployer] = await ethers.getSigners();
-  console.log("Deploying contracts with account:", deployer.address);
-  console.log("Account balance:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "ETH\n");
+  const signers = await ethers.getSigners();
+  
+  if (!signers || signers.length === 0) {
+    console.error("❌ No signers found!");
+    console.error("Please check your PRIVATE_KEY in .env file");
+    console.error("Current PRIVATE_KEY exists:", !!process.env.PRIVATE_KEY);
+    process.exit(1);
+  }
+  
+  const deployer = signers[0];
+  const deployerAddress = await deployer.getAddress();
+  console.log("Deploying contracts with account:", deployerAddress);
+  const balance = await ethers.provider.getBalance(deployerAddress);
+  console.log("Account balance:", ethers.formatEther(balance), "CELO\n");
+  
+  if (balance === 0n) {
+    console.error("❌ Account has 0 balance!");
+    console.error("Please send some CELO to:", deployerAddress);
+    console.error("Get tokens from: https://faucet.celo.org/celo-sepolia");
+    process.exit(1);
+  }
 
   // ==================== DEPLOY CREDIT SCORE ====================
   console.log("📊 Deploying CreditScore...");
@@ -59,21 +81,40 @@ async function main() {
   const lendingPoolAddress = await lendingPool.getAddress();
   console.log("✅ LendingPool deployed to:", lendingPoolAddress);
 
-  // Create pools for Mento stablecoins
-  const networkName = await ethers.provider.getNetwork().then(n => n.name);
-  const isAlfajores = networkName.includes("alfajores") || (await ethers.provider.getNetwork()).chainId === 44787n;
+  // Create pools for Mento stablecoins - Detect network first
+  const network = await ethers.provider.getNetwork();
+  const chainId = network.chainId;
+  
+  let tokens: { cUSD: string; cEUR: string; cREAL: string };
+  let networkLabel: string;
+  
+  // Check Celo Sepolia FIRST (Chain ID: 11142220)
+  if (chainId === 11142220n) {
+    networkLabel = "Celo Sepolia";
+    tokens = {
+      cUSD: "0xdE9e4C3ce781b4bA68120d6261cbad65ce0aB00b",
+      cEUR: "0xA99dC247d6b7B2E3ab48a1fEE101b83cD6aCd82a",
+      cREAL: "0x2294298942fdc79417DE9E0D740A4957E0e7783a",
+    };
+  } else if (chainId === 44787n) {
+    // Alfajores Testnet (Chain ID: 44787)
+    networkLabel = "Alfajores";
+    tokens = {
+      cUSD: "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
+      cEUR: "0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
+      cREAL: "0xE4D517785D091D3c54818832dB6094bcc2744545",
+    };
+  } else {
+    // Celo Mainnet (Chain ID: 42220)
+    networkLabel = "Celo Mainnet";
+    tokens = {
+      cUSD: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
+      cEUR: "0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73",
+      cREAL: "0xe8537a3d056DA446677B9E9d6c5dB704EaAb4787",
+    };
+  }
 
-  const tokens = isAlfajores ? {
-    cUSD: "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
-    cEUR: "0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
-    cREAL: "0xE4D517785D091D3c54818832dB6094bcc2744545",
-  } : {
-    cUSD: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
-    cEUR: "0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73",
-    cREAL: "0xe8537a3d056DA446677B9E9d6c5dB704EaAb4787",
-  };
-
-  console.log(`   Whitelisting ${isAlfajores ? 'Alfajores' : 'Celo Mainnet'} tokens...`);
+  console.log(`   Whitelisting ${networkLabel} tokens...`);
   await lendingPool.whitelistToken(tokens.cUSD, true);
   console.log("   ✓ Whitelisted cUSD");
   await lendingPool.whitelistToken(tokens.cEUR, true);
@@ -189,7 +230,7 @@ async function main() {
 
   // Save addresses to file
   const addresses = {
-    network: isAlfajores ? "alfajores" : "celo",
+    network: chainId === 44787n ? "alfajores" : chainId === 11142220n ? "celoSepolia" : "celo",
     deployer: deployer.address,
     timestamp: new Date().toISOString(),
     contracts: {
