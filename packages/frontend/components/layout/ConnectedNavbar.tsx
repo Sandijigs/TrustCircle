@@ -7,12 +7,15 @@
 
 'use client';
 
-import { useAccount, useBalance, useDisconnect } from 'wagmi';
+import { useAccount, useBalance, useDisconnect, useContractRead } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
 import { Navbar } from './Navbar';
 import { NavbarUser, NetworkInfo } from '@/types/components';
 import { useEffect, useState } from 'react';
 import { celoSepolia } from '@/config/wagmi';
+import { getTokenAddresses } from '@/config/contracts';
+import { ERC20_ABI } from '@/config/tokens';
+import { formatUnits } from 'viem';
 
 interface ConnectedNavbarProps {
   onMenuToggle?: () => void;
@@ -26,24 +29,73 @@ export function ConnectedNavbar({ onMenuToggle, className }: ConnectedNavbarProp
   const [user, setUser] = useState<NavbarUser | undefined>();
   const [network, setNetwork] = useState<NetworkInfo | undefined>();
 
-  // Get balance
-  const { data: balanceData } = useBalance({
+  // Get native CELO balance
+  const { data: celoBalance } = useBalance({
     address: address,
+  });
+
+  // Get stablecoin addresses
+  const tokens = getTokenAddresses();
+
+  // Get cUSD balance
+  const { data: cusdBalance } = useContractRead({
+    address: tokens.cUSD as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    enabled: !!address,
+  });
+
+  // Get cEUR balance
+  const { data: ceurBalance } = useContractRead({
+    address: tokens.cEUR as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    enabled: !!address,
+  });
+
+  // Get cREAL balance
+  const { data: crealBalance } = useContractRead({
+    address: tokens.cREAL as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    enabled: !!address,
   });
 
   // Update user state when wallet connects
   useEffect(() => {
     if (isConnected && address) {
+      // Format stablecoin balances
+      const cusd = cusdBalance ? Number(formatUnits(cusdBalance as bigint, 18)).toFixed(2) : '0.00';
+      const ceur = ceurBalance ? Number(formatUnits(ceurBalance as bigint, 18)).toFixed(2) : '0.00';
+      const creal = crealBalance ? Number(formatUnits(crealBalance as bigint, 18)).toFixed(2) : '0.00';
+      const celo = celoBalance ? parseFloat(celoBalance.formatted).toFixed(2) : '0.00';
+
+      // Show balance with highest value
+      let displayBalance = `${cusd} cUSD`;
+      if (parseFloat(ceur) > parseFloat(cusd)) {
+        displayBalance = `${ceur} cEUR`;
+      }
+      if (parseFloat(creal) > Math.max(parseFloat(cusd), parseFloat(ceur))) {
+        displayBalance = `${creal} cREAL`;
+      }
+
       setUser({
         address: address,
-        balance: balanceData ? `${parseFloat(balanceData.formatted).toFixed(2)}` : '0.00',
-        verified: false, // TODO: Check verification status from contract
-        creditScore: undefined, // TODO: Fetch from credit score contract
+        balance: displayBalance,
+        celoBalance: celo,
+        cusdBalance: cusd,
+        ceurBalance: ceur,
+        crealBalance: creal,
+        verified: false,
+        creditScore: undefined,
       });
     } else {
       setUser(undefined);
     }
-  }, [isConnected, address, balanceData]);
+  }, [isConnected, address, celoBalance, cusdBalance, ceurBalance, crealBalance]);
 
   // Update network state
   useEffect(() => {

@@ -1,6 +1,6 @@
 /**
  * Lend Page
- * 
+ *
  * Allows users to:
  * - Deposit funds into lending pools
  * - Withdraw deposits
@@ -8,24 +8,33 @@
  * - Track earnings
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { MainLayout } from '@/components/layout';
-import { PoolStats } from '@/components/lend/PoolStats';
-import { MyDeposits } from '@/components/lend/MyDeposits';
-import { DepositModal } from '@/components/lend/DepositModal';
-import { Card } from '@/components/ui';
-import { ConnectWalletPrompt } from '@/components/wallet/ConnectWalletPrompt';
-import { useAccount } from 'wagmi';
+import { useState } from "react";
+import { MainLayout } from "@/components/layout";
+import { AvailablePools } from "@/components/lend/AvailablePools";
+import { MyDeposits } from "@/components/lend/MyDeposits";
+import { DepositModal } from "@/components/lend/DepositModal";
+import { Card } from "@/components/ui";
+import { ConnectWalletPrompt } from "@/components/wallet/ConnectWalletPrompt";
+import { useAccount } from "wagmi";
 
 export default function LendPage() {
   const { address, isConnected } = useAccount();
   const [showDepositModal, setShowDepositModal] = useState(false);
-  const [selectedToken, setSelectedToken] = useState<string | null>(null);
+  const [selectedToken, setSelectedToken] = useState<{
+    address: string;
+    symbol: string;
+  } | null>(null);
 
-  const handleDeposit = (tokenAddress: string) => {
-    setSelectedToken(tokenAddress);
+  const handleDeposit = (tokenAddress: string, tokenSymbol: string) => {
+    console.log(
+      "🎯 Opening deposit modal for:",
+      tokenSymbol,
+      "at",
+      tokenAddress
+    );
+    setSelectedToken({ address: tokenAddress, symbol: tokenSymbol });
     setShowDepositModal(true);
   };
 
@@ -52,8 +61,10 @@ export default function LendPage() {
 
         {/* Pool Statistics */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Available Pools</h2>
-          <PoolStats onDeposit={handleDeposit} />
+          <h2 className="text-xl text-gray-900 font-semibold mb-4">
+            Available Pools
+          </h2>
+          <AvailablePools onDeposit={handleDeposit} />
         </div>
 
         {/* Info Cards */}
@@ -65,11 +76,14 @@ export default function LendPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">Dynamic APY</h3>
-                <p className="text-sm text-gray-600">Rates adjust with demand</p>
+                <p className="text-sm text-gray-600">
+                  Rates adjust with demand
+                </p>
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              Interest rates increase when pool utilization is high, maximizing your returns
+              Interest rates increase when pool utilization is high, maximizing
+              your returns
             </p>
           </Card>
 
@@ -84,7 +98,8 @@ export default function LendPage() {
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              All loans require collateral or social backing through lending circles
+              All loans require collateral or social backing through lending
+              circles
             </p>
           </Card>
 
@@ -94,12 +109,15 @@ export default function LendPage() {
                 <span className="text-2xl">⚡</span>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Instant Withdraw</h3>
+                <h3 className="font-semibold text-gray-900">
+                  Instant Withdraw
+                </h3>
                 <p className="text-sm text-gray-600">Access anytime</p>
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              Withdraw your funds plus earned interest at any time (subject to liquidity)
+              Withdraw your funds plus earned interest at any time (subject to
+              liquidity)
             </p>
           </Card>
         </div>
@@ -157,7 +175,8 @@ export default function LendPage() {
       {/* Deposit Modal */}
       {showDepositModal && selectedToken && (
         <DepositModal
-          tokenAddress={selectedToken as `0x${string}`}
+          assetAddress={selectedToken.address}
+          assetSymbol={selectedToken.symbol}
           isOpen={showDepositModal}
           onClose={() => {
             setShowDepositModal(false);

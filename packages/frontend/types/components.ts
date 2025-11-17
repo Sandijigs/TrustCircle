@@ -176,7 +176,11 @@ export interface FileUploadProps extends BaseComponentProps {
 // Navbar user data
 export interface NavbarUser {
   address: string;
-  balance?: string;
+  balance?: string; // Display balance (highest token)
+  celoBalance?: string;
+  cusdBalance?: string;
+  ceurBalance?: string;
+  crealBalance?: string;
   creditScore?: number;
   verified?: boolean;
 }

@@ -22,6 +22,7 @@
     "get-tokens": "hardhat run scripts/get-test-tokens.ts --network celoSepolia",
     "mint-tokens": "hardhat run scripts/mint-test-tokens.ts --network celoSepolia",
     "check-mock": "hardhat run scripts/check-mock-token.ts --network celoSepolia",
+    "create-pools": "hardhat run scripts/create-pools.ts --network celoSepolia",
     "security:scan": "../../scripts/security-scan.sh",
     "security:status": "ts-node ../../scripts/security-status.ts",
     "emergency:pause": "ts-node ../../scripts/emergency-pause.ts",

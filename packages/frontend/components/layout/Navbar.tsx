@@ -201,11 +201,48 @@ export function Navbar({
                         </div>
 
                         {user.balance && (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Balance:</span>
-                            <span className="font-semibold text-gray-900 dark:text-white">
-                              {user.balance} cUSD
-                            </span>
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Balances:</p>
+                            
+                            {/* CELO Balance */}
+                            {user.celoBalance && parseFloat(user.celoBalance) > 0 && (
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">CELO:</span>
+                                <span className="font-semibold text-gray-900 dark:text-white">
+                                  {user.celoBalance}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {/* cUSD Balance */}
+                            {user.cusdBalance && parseFloat(user.cusdBalance) > 0 && (
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">cUSD:</span>
+                                <span className="font-semibold text-gray-900 dark:text-white">
+                                  {user.cusdBalance}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {/* cEUR Balance */}
+                            {user.ceurBalance && parseFloat(user.ceurBalance) > 0 && (
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">cEUR:</span>
+                                <span className="font-semibold text-green-600 dark:text-green-400">
+                                  {user.ceurBalance}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {/* cREAL Balance */}
+                            {user.crealBalance && parseFloat(user.crealBalance) > 0 && (
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">cREAL:</span>
+                                <span className="font-semibold text-gray-900 dark:text-white">
+                                  {user.crealBalance}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
