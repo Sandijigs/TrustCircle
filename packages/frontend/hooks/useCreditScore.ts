@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import type { CreditScore, CalculateCreditScoreResponse } from '@/lib/creditScore/types';
+import { getCreditTier, getNextTier, getScoreImprovementNeeded } from '@/lib/creditScore/config';
 
 interface UseCreditScoreOptions {
   autoFetch?: boolean; // Automatically fetch on mount
@@ -89,59 +90,29 @@ export function useCreditScore(options: UseCreditScoreOptions = {}) {
   }, [autoFetch, address, creditScore, isLoading, fetchCreditScore]);
 
   /**
-   * Get score range info
+   * Get score range info using unified tier system
    */
   const getScoreRangeInfo = useCallback(() => {
     if (!creditScore) return null;
 
-    const score = creditScore.score;
+    const tier = getCreditTier(creditScore.score);
+    const nextTier = getNextTier(creditScore.score);
+    const improvementNeeded = getScoreImprovementNeeded(creditScore.score);
 
-    if (score >= 800) {
-      return {
-        range: '800-1000',
-        label: 'Excellent',
-        color: 'text-purple-600 dark:text-purple-400',
-        bgColor: 'bg-purple-100 dark:bg-purple-900/20',
-        description: 'Outstanding credit profile',
-        borrowingLimit: 10000,
-      };
-    } else if (score >= 650) {
-      return {
-        range: '650-799',
-        label: 'Good',
-        color: 'text-success-600 dark:text-success-400',
-        bgColor: 'bg-success-100 dark:bg-success-900/20',
-        description: 'Strong credit profile',
-        borrowingLimit: 5000,
-      };
-    } else if (score >= 500) {
-      return {
-        range: '500-649',
-        label: 'Fair',
-        color: 'text-blue-600 dark:text-blue-400',
-        bgColor: 'bg-blue-100 dark:bg-blue-900/20',
-        description: 'Acceptable credit profile',
-        borrowingLimit: 2000,
-      };
-    } else if (score >= 350) {
-      return {
-        range: '350-499',
-        label: 'Poor',
-        color: 'text-yellow-600 dark:text-yellow-400',
-        bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
-        description: 'Limited credit history',
-        borrowingLimit: 500,
-      };
-    } else {
-      return {
-        range: '0-349',
-        label: 'Very Poor',
-        color: 'text-red-600 dark:text-red-400',
-        bgColor: 'bg-red-100 dark:bg-red-900/20',
-        description: 'Insufficient history',
-        borrowingLimit: 100,
-      };
-    }
+    return {
+      range: `${tier.minScore}-${tier.maxScore}`,
+      label: tier.label,
+      color: tier.color,
+      bgColor: tier.bgColor,
+      description: tier.description,
+      borrowingLimit: tier.borrowingLimit,
+      emoji: tier.emoji,
+      nextTier: nextTier ? {
+        label: nextTier.label,
+        borrowingLimit: nextTier.borrowingLimit,
+        improvementNeeded,
+      } : null,
+    };
   }, [creditScore]);
 
   /**

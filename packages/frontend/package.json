@@ -16,6 +16,7 @@
     "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.69.0",
     "@farcaster/auth-kit": "^0.8.1",
     "@neynar/nodejs-sdk": "^3.34.0",
     "@reown/appkit": "^1.7.8",

@@ -239,6 +239,8 @@ export function calculateLatePaymentPenalty(
   return penalty;
 }
 
+import { getInterestRate, getBorrowingLimit } from '@/lib/creditScore/config';
+
 /**
  * Calculates interest rate based on credit score
  * Risk-based pricing model
@@ -251,27 +253,8 @@ export function calculateInterestRate(
   creditScore: number,
   hasCollateral: boolean = false
 ): number {
-  let rateBPS: number;
-
-  // Base rate by credit score tier
-  if (creditScore >= 800) {
-    rateBPS = 800; // 8%
-  } else if (creditScore >= 700) {
-    rateBPS = 1200; // 12%
-  } else if (creditScore >= 600) {
-    rateBPS = 1600; // 16%
-  } else if (creditScore >= 500) {
-    rateBPS = 2000; // 20%
-  } else {
-    rateBPS = 2500; // 25%
-  }
-
-  // Collateral discount (2% reduction)
-  if (hasCollateral) {
-    rateBPS -= 200;
-  }
-
-  return rateBPS;
+  // Use unified credit tier system
+  return getInterestRate(creditScore, hasCollateral);
 }
 
 /**
@@ -281,12 +264,8 @@ export function calculateInterestRate(
  * @returns Maximum loan amount
  */
 export function calculateMaxLoanAmount(creditScore: number): number {
-  if (creditScore >= 800) return 5000;
-  if (creditScore >= 700) return 3000;
-  if (creditScore >= 600) return 1500;
-  if (creditScore >= 500) return 800;
-  if (creditScore >= 300) return 500;
-  return 0; // Below minimum credit score
+  // Use unified credit tier system
+  return getBorrowingLimit(creditScore);
 }
 
 /**

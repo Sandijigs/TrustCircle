@@ -19,12 +19,15 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
 import { StatCard } from './StatCard';
 import { CreditScoreGauge } from './CreditScoreGauge';
 import { ActivityFeed } from './ActivityFeed';
 import { Button } from '@/components/ui/Button';
 import { ActivityItem } from '@/types/components';
+import { useCreditScore } from '@/hooks/useCreditScore';
+import { getBorrowingLimit } from '@/lib/creditScore/config';
 
 interface DashboardStats {
   totalBorrowed: string;
@@ -57,7 +60,30 @@ export function Dashboard({
   onJoinCircle,
   onDeposit,
 }: DashboardProps) {
+  const { address } = useAccount();
+  const { creditScore: fetchedScore, isLoading: creditLoading, fetchCreditScore } = useCreditScore({ autoFetch: false });
   const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
+  const [displayStats, setDisplayStats] = useState(stats);
+  const [displayCreditScore, setDisplayCreditScore] = useState(creditScore);
+
+  // Fetch credit score on mount
+  useEffect(() => {
+    if (address && !fetchedScore && !creditLoading) {
+      fetchCreditScore();
+    }
+  }, [address, fetchedScore, creditLoading, fetchCreditScore]);
+
+  // Calculate available to borrow based on credit score
+  useEffect(() => {
+    const score = fetchedScore?.score || creditScore;
+    const borrowingLimit = getBorrowingLimit(score);
+    
+    setDisplayCreditScore(score);
+    setDisplayStats({
+      ...stats,
+      availableToBorrow: borrowingLimit.toFixed(2),
+    });
+  }, [fetchedScore, creditScore, stats]);
 
   return (
     <div className="space-y-6">
@@ -131,7 +157,7 @@ export function Dashboard({
 
         <StatCard
           label="Available to Borrow"
-          value={`${stats.availableToBorrow} cUSD`}
+          value={`$${displayStats.availableToBorrow}`}
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -172,7 +198,7 @@ export function Dashboard({
         {/* Credit Score */}
         <div className="lg:col-span-1">
           <CreditScoreGauge
-            score={creditScore}
+            score={displayCreditScore}
             size="md"
             showLabel
             animated
