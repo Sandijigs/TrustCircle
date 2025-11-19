@@ -344,10 +344,10 @@ export function LoanRequestForm({
               </label>
               <CurrencyInput
                 value={formData.amount}
-                onChange={(value) =>
-                  setFormData({ ...formData, amount: value })
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: e.target.value })
                 }
-                symbol={selectedStablecoin?.symbol || "USD"}
+                currency={selectedStablecoin?.symbol as 'cUSD' | 'cEUR' | 'cREAL' || "cUSD"}
                 error={errors.amount}
               />
               <p className="mt-1 text-sm text-gray-500">
