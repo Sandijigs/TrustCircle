@@ -20,7 +20,10 @@ import { Select } from "@/components/forms/Select";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useLoan } from "@/hooks/useLoan";
 import { useCreditScore } from "@/hooks/useCreditScore";
-import { getSafeBorrowingLimit, getSafeCreditScore } from '@/lib/creditScore/borrowingUtils';
+import {
+  getSafeBorrowingLimit,
+  getSafeCreditScore,
+} from "@/lib/creditScore/borrowingUtils";
 import {
   PaymentFrequency,
   PAYMENT_FREQUENCY_LABELS,
@@ -88,14 +91,20 @@ export function LoanRequestForm({
   });
 
   // Calculate max loan amount immediately (don't wait for useEffect)
-  console.log('[LoanRequestForm] creditScoreData:', creditScoreData);
-  console.log('[LoanRequestForm] creditScoreData?.score:', creditScoreData?.score);
-  
+  console.log("[LoanRequestForm] creditScoreData:", creditScoreData);
+  console.log(
+    "[LoanRequestForm] creditScoreData?.score:",
+    creditScoreData?.score
+  );
+
   const currentScore = getSafeCreditScore(creditScoreData?.score);
   const maxLoanAmountForScore = getSafeBorrowingLimit(creditScoreData?.score);
-  
-  console.log('[LoanRequestForm] Final currentScore:', currentScore);
-  console.log('[LoanRequestForm] Final maxLoanAmountForScore:', maxLoanAmountForScore);
+
+  console.log("[LoanRequestForm] Final currentScore:", currentScore);
+  console.log(
+    "[LoanRequestForm] Final maxLoanAmountForScore:",
+    maxLoanAmountForScore
+  );
 
   const [calculatedTerms, setCalculatedTerms] = useState({
     interestRate: 0,
@@ -347,7 +356,10 @@ export function LoanRequestForm({
                 onChange={(e) =>
                   setFormData({ ...formData, amount: e.target.value })
                 }
-                currency={selectedStablecoin?.symbol as 'cUSD' | 'cEUR' | 'cREAL' || "cUSD"}
+                currency={
+                  (selectedStablecoin?.symbol as "cUSD" | "cEUR" | "cREAL") ||
+                  "cUSD"
+                }
                 error={errors.amount}
               />
               <p className="mt-1 text-sm text-gray-500">
@@ -405,7 +417,7 @@ export function LoanRequestForm({
               <p className="text-gray-600">Choose your repayment schedule</p>
             </div>
 
-            <div>
+            <div className="text-gray-600">
               <label className="block text-sm font-medium mb-2">
                 Loan Duration: {formData.durationMonths} months
               </label>
@@ -431,7 +443,7 @@ export function LoanRequestForm({
               )}
             </div>
 
-            <div>
+            <div className="text-gray-600">
               <label className="block text-sm font-medium mb-2">
                 Payment Frequency
               </label>
@@ -461,7 +473,7 @@ export function LoanRequestForm({
             </div>
 
             {/* Loan Summary */}
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-gray-600">
               <h3 className="font-semibold mb-3">Loan Summary</h3>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Principal Amount:</span>
@@ -505,7 +517,7 @@ export function LoanRequestForm({
 
         {/* Step 3: Collateral */}
         {step === 3 && (
-          <div className="space-y-6">
+          <div className="space-y-6 text-gray-600">
             <div>
               <h2 className="text-2xl font-bold mb-2">Collateral (Optional)</h2>
               <p className="text-gray-600">
@@ -562,7 +574,7 @@ export function LoanRequestForm({
 
         {/* Step 4: Review and Submit */}
         {step === 4 && (
-          <div className="space-y-6">
+          <div className="space-y-6 text-gray-600">
             <div>
               <h2 className="text-2xl font-bold mb-2">Review Your Loan</h2>
               <p className="text-gray-600">
