@@ -40,10 +40,14 @@ export function CreditScoreGauge({
   ...props
 }: CreditScoreGaugeProps) {
   const [displayScore, setDisplayScore] = useState(animated ? 0 : score);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
-  // Animate score on mount
+  // Animate score on mount (only once)
   useEffect(() => {
-    if (!animated) return;
+    if (!animated || hasAnimated) {
+      setDisplayScore(score);
+      return;
+    }
 
     const duration = 1500;
     const steps = 60;
@@ -54,6 +58,7 @@ export function CreditScoreGauge({
       current += increment;
       if (current >= score) {
         setDisplayScore(score);
+        setHasAnimated(true);
         clearInterval(timer);
       } else {
         setDisplayScore(Math.floor(current));
@@ -61,7 +66,7 @@ export function CreditScoreGauge({
     }, duration / steps);
 
     return () => clearInterval(timer);
-  }, [score, animated]);
+  }, [score, animated, hasAnimated]);
 
   // Calculate percentage
   const percentage = (displayScore / maxScore) * 100;

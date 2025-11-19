@@ -55,7 +55,7 @@ export async function createVouch(params: {
 
     // Store vouch
     const voucheeKey = vouch.voucheeAddress;
-    const existing Vouches = vouchesStore.get(voucheeKey) || [];
+    const existingVouches = vouchesStore.get(voucheeKey) || [];
     vouchesStore.set(voucheeKey, [...existingVouches, vouch]);
 
     // TODO: Store on-chain via LendingCircle contract

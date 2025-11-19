@@ -91,7 +91,7 @@ export const CREDIT_TIERS: CreditTier[] = [
     color: 'text-red-600 dark:text-red-400',
     bgColor: 'bg-red-100 dark:bg-red-900/20',
     description: 'Minimal credit history with significant challenges',
-    borrowingLimit: 300, // $300
+    borrowingLimit: 500, // $500 (increased for testing)
     interestRateBPS: 2500, // 25%
     emoji: '📊',
   },
@@ -99,13 +99,13 @@ export const CREDIT_TIERS: CreditTier[] = [
     minScore: 0,
     maxScore: 299,
     tier: 'no-credit',
-    label: 'No Credit',
-    color: 'text-gray-600 dark:text-gray-400',
-    bgColor: 'bg-gray-100 dark:bg-gray-900/20',
-    description: 'Insufficient credit history to assess',
-    borrowingLimit: 0, // $0 - Cannot borrow
-    interestRateBPS: 0, // N/A
-    emoji: '🔒',
+    label: 'Building Credit',
+    color: 'text-orange-600 dark:text-orange-400',
+    bgColor: 'bg-orange-100 dark:bg-orange-900/20',
+    description: 'New to the platform - start building your credit history',
+    borrowingLimit: 250, // $250 - Small starter loans allowed for testing
+    interestRateBPS: 3000, // 30% (high rate for new users)
+    emoji: '🌱',
   },
 ];
 
@@ -177,5 +177,6 @@ export const DEFAULT_CREDIT_SCORE = 500;
 
 /**
  * Minimum credit score to borrow
+ * Set to 0 to allow all users to test the platform
  */
-export const MIN_CREDIT_SCORE_TO_BORROW = 300;
+export const MIN_CREDIT_SCORE_TO_BORROW = 0;

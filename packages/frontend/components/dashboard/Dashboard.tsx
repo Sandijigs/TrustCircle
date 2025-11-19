@@ -27,7 +27,7 @@ import { ActivityFeed } from './ActivityFeed';
 import { Button } from '@/components/ui/Button';
 import { ActivityItem } from '@/types/components';
 import { useCreditScore } from '@/hooks/useCreditScore';
-import { getBorrowingLimit } from '@/lib/creditScore/config';
+import { getSafeBorrowingLimit, getSafeCreditScore } from '@/lib/creditScore/borrowingUtils';
 
 interface DashboardStats {
   totalBorrowed: string;
@@ -63,8 +63,6 @@ export function Dashboard({
   const { address } = useAccount();
   const { creditScore: fetchedScore, isLoading: creditLoading, fetchCreditScore } = useCreditScore({ autoFetch: false });
   const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
-  const [displayStats, setDisplayStats] = useState(stats);
-  const [displayCreditScore, setDisplayCreditScore] = useState(creditScore);
 
   // Fetch credit score on mount
   useEffect(() => {
@@ -73,17 +71,21 @@ export function Dashboard({
     }
   }, [address, fetchedScore, creditLoading, fetchCreditScore]);
 
-  // Calculate available to borrow based on credit score
-  useEffect(() => {
-    const score = fetchedScore?.score || creditScore;
-    const borrowingLimit = getBorrowingLimit(score);
-    
-    setDisplayCreditScore(score);
-    setDisplayStats({
-      ...stats,
-      availableToBorrow: borrowingLimit.toFixed(2),
-    });
-  }, [fetchedScore, creditScore, stats]);
+  // Calculate display values based on credit score with safe fallbacks
+  console.log('[Dashboard] fetchedScore:', fetchedScore);
+  console.log('[Dashboard] fetchedScore?.score:', fetchedScore?.score);
+  console.log('[Dashboard] creditScore prop:', creditScore);
+  
+  const displayCreditScore = getSafeCreditScore(fetchedScore?.score ?? creditScore);
+  const borrowingLimit = getSafeBorrowingLimit(fetchedScore?.score ?? creditScore);
+  
+  console.log('[Dashboard] Final displayCreditScore:', displayCreditScore);
+  console.log('[Dashboard] Final borrowingLimit:', borrowingLimit);
+  
+  const displayStats = {
+    ...stats,
+    availableToBorrow: borrowingLimit.toFixed(2),
+  };
 
   return (
     <div className="space-y-6">
