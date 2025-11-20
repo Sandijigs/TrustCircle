@@ -12,7 +12,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useAccount, useContractRead, useContractWrite } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import { parseUnits, formatUnits } from 'viem';
 import {
   Loan,
@@ -54,69 +54,51 @@ export function useLoan(loanId?: bigint) {
   const [error, setError] = useState<string | null>(null);
 
   // Read specific loan data
-  const { data: loanData, refetch: refetchLoan } = useContractRead({
+  const { data: loanData, refetch: refetchLoan } = useReadContract({
     address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'getLoan',
     args: loanId ? [loanId] : undefined,
-    enabled: !!loanId,
-    watch: true,
+    query: {
+      enabled: !!loanId,
+    },
   }) as { data: Loan | undefined; refetch: () => void };
 
   // Read all borrower's loans
-  const { data: borrowerLoanIds, refetch: refetchBorrowerLoans } = useContractRead({
+  const { data: borrowerLoanIds, refetch: refetchBorrowerLoans } = useReadContract({
     address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'getBorrowerLoans',
     args: address ? [address] : undefined,
-    enabled: !!address,
-    watch: true,
+    query: {
+      enabled: !!address,
+    },
   }) as { data: bigint[] | undefined; refetch: () => void };
 
   // Read active loan count
-  const { data: activeLoanCount } = useContractRead({
+  const { data: activeLoanCount } = useReadContract({
     address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'activeLoanCount',
     args: address ? [address] : undefined,
-    enabled: !!address,
-    watch: true,
+    query: {
+      enabled: !!address,
+    },
   });
 
   // Read payment late status
-  const { data: lateStatus } = useContractRead({
+  const { data: lateStatus } = useReadContract({
     address: LOAN_MANAGER_ADDRESS,
     abi: LOAN_MANAGER_ABI,
     functionName: 'isPaymentLate',
     args: loanId ? [loanId] : undefined,
-    enabled: !!loanId,
-    watch: true,
+    query: {
+      enabled: !!loanId,
+    },
   }) as { data: { isLate: boolean; daysLate: bigint } | undefined };
 
   // Contract write functions
-  const { writeAsync: requestLoanWrite } = useContractWrite({
-    address: LOAN_MANAGER_ADDRESS,
-    abi: LOAN_MANAGER_ABI,
-    functionName: 'requestLoan',
-  });
-
-  const { writeAsync: makePaymentWrite } = useContractWrite({
-    address: LOAN_MANAGER_ADDRESS,
-    abi: LOAN_MANAGER_ABI,
-    functionName: 'makePayment',
-  });
-
-  const { writeAsync: cancelLoanWrite } = useContractWrite({
-    address: LOAN_MANAGER_ADDRESS,
-    abi: LOAN_MANAGER_ABI,
-    functionName: 'cancelLoan',
-  });
-
-  const { writeAsync: declarDefaultWrite } = useContractWrite({
-    address: LOAN_MANAGER_ADDRESS,
-    abi: LOAN_MANAGER_ABI,
-    functionName: 'declarDefault',
-  });
+  const { writeContractAsync } = useWriteContract();
 
   /**
    * Convert raw loan data to display format
@@ -296,7 +278,10 @@ export function useLoan(loanId?: bigint) {
         const durationSeconds = BigInt(params.duration * 86400); // days to seconds
 
         // Request loan
-        const tx = await requestLoanWrite({
+        const hash = await writeContractAsync({
+          address: LOAN_MANAGER_ADDRESS,
+          abi: LOAN_MANAGER_ABI,
+          functionName: 'requestLoan',
           args: [
             params.asset as `0x${string}`,
             amountBN,
@@ -306,13 +291,12 @@ export function useLoan(loanId?: bigint) {
           ],
         });
 
-        // Wait for transaction
-        await tx.wait();
+        console.log('Loan request transaction hash:', hash);
 
         // Refetch data
         await refetchBorrowerLoans();
 
-        return tx;
+        return hash;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Loan request failed';
         setError(message);
@@ -321,7 +305,7 @@ export function useLoan(loanId?: bigint) {
         setIsLoading(false);
       }
     },
-    [address, requestLoanWrite, refetchBorrowerLoans]
+    [address, writeContractAsync, refetchBorrowerLoans]
   );
 
   /**
@@ -376,16 +360,19 @@ export function useLoan(loanId?: bigint) {
         }
 
         // 3. Make payment
-        const tx = await makePaymentWrite({
+        const hash = await writeContractAsync({
+          address: LOAN_MANAGER_ADDRESS,
+          abi: LOAN_MANAGER_ABI,
+          functionName: 'makePayment',
           args: [loanId, amountBN],
         });
 
-        await tx.wait();
+        console.log('Payment transaction hash:', hash);
 
         // Refetch data
         await Promise.all([refetchLoan(), refetchBorrowerLoans()]);
 
-        return tx;
+        return hash;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Payment failed';
         setError(message);
@@ -394,7 +381,7 @@ export function useLoan(loanId?: bigint) {
         setIsLoading(false);
       }
     },
-    [address, LOAN_MANAGER_ADDRESS, makePaymentWrite, refetchLoan, refetchBorrowerLoans]
+    [address, writeContractAsync, refetchLoan, refetchBorrowerLoans]
   );
 
   /**
@@ -410,14 +397,16 @@ export function useLoan(loanId?: bigint) {
       setError(null);
 
       try {
-        const tx = await cancelLoanWrite({
+        const hash = await writeContractAsync({
+          address: LOAN_MANAGER_ADDRESS,
+          abi: LOAN_MANAGER_ABI,
+          functionName: 'cancelLoan',
           args: [loanId],
         });
 
-        await tx.wait();
         await refetchBorrowerLoans();
 
-        return tx;
+        return hash;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Cancellation failed';
         setError(message);
@@ -426,7 +415,7 @@ export function useLoan(loanId?: bigint) {
         setIsLoading(false);
       }
     },
-    [address, cancelLoanWrite, refetchBorrowerLoans]
+    [address, writeContractAsync, refetchBorrowerLoans]
   );
 
   /**
@@ -438,14 +427,16 @@ export function useLoan(loanId?: bigint) {
       setError(null);
 
       try {
-        const tx = await declarDefaultWrite({
+        const hash = await writeContractAsync({
+          address: LOAN_MANAGER_ADDRESS,
+          abi: LOAN_MANAGER_ABI,
+          functionName: 'declarDefault',
           args: [loanId],
         });
 
-        await tx.wait();
         await refetchLoan();
 
-        return tx;
+        return hash;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Default declaration failed';
         setError(message);
@@ -454,7 +445,7 @@ export function useLoan(loanId?: bigint) {
         setIsLoading(false);
       }
     },
-    [declarDefaultWrite, refetchLoan]
+    [writeContractAsync, refetchLoan]
   );
 
   /**

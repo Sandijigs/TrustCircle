@@ -18,6 +18,7 @@ import { Input } from "@/components/forms/Input";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { Select } from "@/components/forms/Select";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { LoanSuccessModal } from "@/components/borrow/LoanSuccessModal";
 import { useLoan } from "@/hooks/useLoan";
 import { useCreditScore } from "@/hooks/useCreditScore";
 import {
@@ -79,6 +80,7 @@ export function LoanRequestForm({
     useCreditScore({ autoFetch: true });
 
   const [step, setStep] = useState(1);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState({
     asset: STABLECOINS[0].value,
     amount: "",
@@ -241,13 +243,19 @@ export function LoanRequestForm({
         circleId,
       });
 
-      onSuccess?.();
+      // Show success modal
+      setShowSuccessModal(true);
     } catch (err) {
       console.error("Loan request failed:", err);
       setErrors({
         submit: err instanceof Error ? err.message : "Request failed",
       });
     }
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    onSuccess?.();
   };
 
   const selectedStablecoin = STABLECOINS.find(
@@ -731,6 +739,27 @@ export function LoanRequestForm({
           </div>
         </div>
       </Card>
+
+      {/* Success Modal */}
+      <LoanSuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleCloseSuccessModal}
+        loanDetails={{
+          amount: formData.amount,
+          asset: formData.asset,
+          assetSymbol: selectedStablecoin?.symbol || "cUSD",
+          durationMonths: formData.durationMonths,
+          frequency: formData.frequency,
+          installmentAmount: calculatedTerms.installmentAmount,
+          totalInstallments: calculatedTerms.totalInstallments,
+          interestRate: calculatedTerms.interestRate,
+          totalRepayment: calculatedTerms.totalPayment,
+        }}
+        onViewLoans={() => {
+          // Navigate to loans page or trigger parent component action
+          handleCloseSuccessModal();
+        }}
+      />
     </div>
   );
 }
