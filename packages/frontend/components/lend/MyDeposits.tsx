@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, Button } from '@/components/ui';
-import { useLendingPool } from '@/hooks/useLendingPool';
+import { useLendingPool } from '@/hooks/useLendingPoolSimple';
 import { formatCurrency, formatAPY } from '@/lib/calculations/interestRates';
 import { DepositModal } from './DepositModal';
 import { WithdrawModal } from './WithdrawModal';
