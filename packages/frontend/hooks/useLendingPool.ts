@@ -114,32 +114,37 @@ export function useLendingPool(assetAddress: string) {
 
   // Calculate pool stats
   useEffect(() => {
-    if (!poolData) return;
+    if (!poolData || !poolData.totalDeposits) return;
 
-    const dec = Number(decimals || 18);
-    const totalDeposits = Number(formatUnits(poolData.totalDeposits, dec));
-    const totalBorrowed = Number(formatUnits(poolData.totalBorrowed, dec));
-    const totalReserves = Number(formatUnits(poolData.totalReserves, dec));
-    const totalShares = Number(formatUnits(poolData.totalShares, dec));
+    try {
+      const dec = Number(decimals || 18);
+      const totalDeposits = Number(formatUnits(poolData.totalDeposits, dec));
+      const totalBorrowed = Number(formatUnits(poolData.totalBorrowed || BigInt(0), dec));
+      const totalReserves = Number(formatUnits(poolData.totalReserves || BigInt(0), dec));
+      const totalShares = Number(formatUnits(poolData.totalShares || BigInt(0), dec));
 
-    const utilization = calculateUtilization(totalBorrowed, totalDeposits);
-    const lenderAPY = calculateLenderAPYFromPool(totalBorrowed, totalDeposits);
-    const borrowAPY = lenderAPY / (utilization / 100) / 0.9; // Reverse calculation
-    const availableLiquidity = calculateAvailableLiquidity(totalDeposits, totalBorrowed);
-    const poolValue = totalDeposits - totalBorrowed + totalReserves;
-    const shareValue = calculateShareValue(totalShares, poolValue);
+      const utilization = calculateUtilization(totalBorrowed, totalDeposits);
+      const lenderAPY = calculateLenderAPYFromPool(totalBorrowed, totalDeposits);
+      const borrowAPY = lenderAPY / (utilization / 100) / 0.9; // Reverse calculation
+      const availableLiquidity = calculateAvailableLiquidity(totalDeposits, totalBorrowed);
+      const poolValue = totalDeposits - totalBorrowed + totalReserves;
+      const shareValue = calculateShareValue(totalShares, poolValue);
 
-    setPoolStats({
-      totalDeposits,
-      totalBorrowed,
-      totalReserves,
-      totalShares,
-      lenderAPY,
-      borrowAPY,
-      utilization,
-      availableLiquidity,
-      shareValue,
-    });
+      setPoolStats({
+        totalDeposits,
+        totalBorrowed,
+        totalReserves,
+        totalShares,
+        lenderAPY,
+        borrowAPY,
+        utilization,
+        availableLiquidity,
+        shareValue,
+      });
+    } catch (error) {
+      console.error('Error calculating pool stats:', error);
+      setError('Failed to calculate pool statistics');
+    }
   }, [poolData, decimals]);
 
   // Calculate user stats

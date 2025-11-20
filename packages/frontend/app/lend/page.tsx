@@ -18,14 +18,23 @@ import { DepositModal } from "@/components/lend/DepositModal";
 import { Card } from "@/components/ui";
 import { ConnectWalletPrompt } from "@/components/wallet/ConnectWalletPrompt";
 import { useAccount } from "wagmi";
+import { getTokenAddresses } from "@/config/contracts";
 
 export default function LendPage() {
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [selectedToken, setSelectedToken] = useState<{
     address: string;
     symbol: string;
   } | null>(null);
+
+  // Get all available token pools
+  const tokens = getTokenAddresses();
+  const pools = Object.entries(tokens).map(([symbol, address]) => ({
+    address,
+    symbol,
+    name: symbol, // e.g., "cUSD", "cEUR", "cREAL"
+  }));
 
   const handleDeposit = (tokenAddress: string, tokenSymbol: string) => {
     console.log(
@@ -125,7 +134,7 @@ export default function LendPage() {
         {/* My Deposits */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">My Deposits</h2>
-          <MyDeposits />
+          <MyDeposits pools={pools} />
         </div>
 
         {/* How It Works */}
@@ -176,7 +185,7 @@ export default function LendPage() {
       {showDepositModal && selectedToken && (
         <DepositModal
           assetAddress={selectedToken.address}
-          assetSymbol={selectedToken.symbol}
+          assetSymbol={selectedToken.symbol as "cUSD" | "cEUR" | "cREAL"}
           isOpen={showDepositModal}
           onClose={() => {
             setShowDepositModal(false);

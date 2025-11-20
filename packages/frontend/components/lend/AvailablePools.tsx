@@ -28,9 +28,9 @@ export function AvailablePools({ onDeposit }: AvailablePoolsProps) {
     <div className="grid gap-6 md:grid-cols-3">
       {Object.entries(tokens).map(([symbol, address]) => (
         <PoolCard
-          key={address}
-          assetAddress={address}
-          assetSymbol={symbol}
+          key={symbol}
+          assetAddress={address as string}
+          assetSymbol={symbol as string}
           onDeposit={onDeposit}
         />
       ))}
