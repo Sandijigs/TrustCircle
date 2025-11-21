@@ -40,30 +40,30 @@ export const CELO_MAINNET_TOKENS: Record<string, Token> = {
 };
 
 // Celo Sepolia Testnet (11142220) Mento Stablecoins - NEW TESTNET
-// NOTE: Using mock test tokens for local testing since faucets don't provide stablecoins
+// NOTE: Using Alfajores token addresses as Sepolia uses same testnet tokens
 export const CELO_SEPOLIA_TOKENS: Record<string, Token> = {
   cUSD: {
-    address: "0x8dd252909C90846956592867EaeE335E5c4BbCF5", // MOCK TOKEN - deployed locally
+    address: "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
     symbol: "cUSD",
-    name: "Test Celo Dollar (Mock)",
+    name: "Celo Dollar (Testnet)",
     decimals: 18,
   },
   cEUR: {
-    address: "0x8dd252909C90846956592867EaeE335E5c4BbCF5", // MOCK TOKEN - your deployed cEUR
+    address: "0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
     symbol: "cEUR",
-    name: "Test Celo Euro (Mock)",
+    name: "Celo Euro (Testnet)",
     decimals: 18,
   },
   cREAL: {
-    address: "0x2294298942fdc79417DE9E0D740A4957E0e7783a",
+    address: "0xE4D517785D091D3c54818832dB6094bcc2744545",
     symbol: "cREAL",
-    name: "Celo Real (Sepolia)",
+    name: "Celo Real (Testnet)",
     decimals: 18,
   },
   CELO: {
-    address: "0x471EcE3750Da237f93B8E339c536989b8978a438", // Using mainnet address for now
+    address: "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
     symbol: "CELO",
-    name: "Celo Native Asset (Sepolia)",
+    name: "Celo Native Asset (Testnet)",
     decimals: 18,
   },
 };
