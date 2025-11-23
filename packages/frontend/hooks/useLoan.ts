@@ -293,8 +293,17 @@ export function useLoan(loanId?: bigint) {
 
         console.log('Loan request transaction hash:', hash);
 
+        // Wait for transaction to be mined before refetching
+        // This ensures the new loan ID is available in the contract
+        console.log('Waiting for transaction confirmation...');
+
+        // Wait a bit for the transaction to be processed
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         // Refetch data
+        console.log('Refetching borrower loans...');
         await refetchBorrowerLoans();
+        console.log('Borrower loans refetched successfully');
 
         return hash;
       } catch (err) {
@@ -646,7 +655,7 @@ export function useLoans(loanIds: bigint[]) {
     };
 
     fetchAllLoans();
-  }, [loanIds]);
+  }, [JSON.stringify(loanIds)]); // Stringify to ensure dependency changes when array content changes
 
   return { loans, isLoading, error };
 }

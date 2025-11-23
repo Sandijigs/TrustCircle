@@ -1,6 +1,6 @@
 /**
  * LoanDetails Component
- * 
+ *
  * Comprehensive loan details page showing:
  * - Loan overview and status
  * - Repayment progress
@@ -9,25 +9,32 @@
  * - Quick actions
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { LoanDisplay, LoanStatus } from '@/types/loan';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { RepaymentSchedule } from './RepaymentSchedule';
-import { MakePayment } from './MakePayment';
-import { useLoan } from '@/hooks/useLoan';
-import { formatCurrency, formatPercentage } from '@/lib/calculations/loanCalculator';
+import { useState } from "react";
+import { LoanDisplay, LoanStatus } from "@/types/loan";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { RepaymentSchedule } from "./RepaymentSchedule";
+import { MakePayment } from "./MakePayment";
+import { useLoan } from "@/hooks/useLoan";
+import {
+  formatCurrency,
+  formatPercentage,
+} from "@/lib/calculations/loanCalculator";
 
 interface LoanDetailsProps {
   loanId: string;
 }
 
 export function LoanDetails({ loanId }: LoanDetailsProps) {
-  const { loan, paymentSchedule, isLate, daysLate, refresh } = useLoan(BigInt(loanId));
+  const { loan, paymentSchedule, isLate, daysLate, refresh } = useLoan(
+    BigInt(loanId)
+  );
   const [showPayment, setShowPayment] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'schedule' | 'history'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "schedule" | "history"
+  >("overview");
 
   if (!loan) {
     return (
@@ -88,8 +95,8 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
             <div>
               <h4 className="font-semibold text-red-800">Payment Overdue</h4>
               <p className="text-sm text-red-700">
-                Your payment is {daysLate} days late. Please make a payment as soon as possible
-                to avoid default.
+                Your payment is {daysLate} days late. Please make a payment as
+                soon as possible to avoid default.
               </p>
             </div>
           </div>
@@ -103,8 +110,8 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
             <div>
               <h4 className="font-semibold text-green-800">Loan Completed</h4>
               <p className="text-sm text-green-700">
-                Congratulations! You've successfully repaid this loan. Your credit score has been
-                improved.
+                Congratulations! You've successfully repaid this loan. Your
+                credit score has been improved.
               </p>
             </div>
           </div>
@@ -118,8 +125,9 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
             <div>
               <h4 className="font-semibold text-red-800">Loan Defaulted</h4>
               <p className="text-sm text-red-700">
-                This loan has been marked as defaulted. Your collateral (if any) has been
-                liquidated, and your credit score has been significantly reduced.
+                This loan has been marked as defaulted. Your collateral (if any)
+                has been liquidated, and your credit score has been
+                significantly reduced.
               </p>
             </div>
           </div>
@@ -130,11 +138,15 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4">
           <p className="text-sm text-gray-600">Principal Amount</p>
-          <p className="text-2xl font-bold">{formatCurrency(loan.principalAmount)}</p>
+          <p className="text-2xl font-bold">
+            {formatCurrency(loan.principalAmount)}
+          </p>
         </Card>
         <Card className="p-4">
           <p className="text-sm text-gray-600">Total Repaid</p>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(loan.totalRepaid)}</p>
+          <p className="text-2xl font-bold text-green-600">
+            {formatCurrency(loan.totalRepaid)}
+          </p>
         </Card>
         <Card className="p-4">
           <p className="text-sm text-gray-600">Remaining Balance</p>
@@ -177,17 +189,17 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
         <div className="border-b">
           <div className="flex">
             {[
-              { key: 'overview', label: 'Overview' },
-              { key: 'schedule', label: 'Payment Schedule' },
-              { key: 'history', label: 'Payment History' },
+              { key: "overview", label: "Overview" },
+              { key: "schedule", label: "Payment Schedule" },
+              { key: "history", label: "Payment History" },
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
                 className={`px-6 py-3 font-medium transition ${
                   activeTab === tab.key
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? "border-b-2 border-blue-600 text-blue-600"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {tab.label}
@@ -198,19 +210,23 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
 
         <div className="p-6">
           {/* Overview Tab */}
-          {activeTab === 'overview' && (
+          {activeTab === "overview" && (
             <div className="space-y-6">
               {/* Loan Terms */}
-              <div>
+              <div className="text-gray-60">
                 <h3 className="text-lg font-semibold mb-4">Loan Terms</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Interest Rate (APR)</p>
-                    <p className="font-semibold">{formatPercentage(loan.interestRate)}</p>
+                    <p className="font-semibold">
+                      {formatPercentage(loan.interestRate)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Loan Duration</p>
-                    <p className="font-semibold">{loan.durationInMonths} months</p>
+                    <p className="font-semibold">
+                      {loan.durationInMonths} months
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Payment Frequency</p>
@@ -218,15 +234,21 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Installment Amount</p>
-                    <p className="font-semibold">{formatCurrency(loan.installmentAmount)}</p>
+                    <p className="font-semibold">
+                      {formatCurrency(loan.installmentAmount)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Interest</p>
-                    <p className="font-semibold">{formatCurrency(loan.totalInterest)}</p>
+                    <p className="font-semibold">
+                      {formatCurrency(loan.totalInterest)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Effective APR</p>
-                    <p className="font-semibold">{formatPercentage(loan.apr)}</p>
+                    <p className="font-semibold">
+                      {formatPercentage(loan.apr)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -238,10 +260,10 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
                   <div>
                     <p className="text-sm text-gray-600">Loan Start Date</p>
                     <p className="font-semibold">
-                      {loan.startTime.toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric',
+                      {loan.startTime.toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
                       })}
                     </p>
                   </div>
@@ -249,10 +271,10 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
                     <div>
                       <p className="text-sm text-gray-600">Next Payment Due</p>
                       <p className="font-semibold">
-                        {loan.nextPaymentDue.toLocaleDateString('en-US', {
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric',
+                        {loan.nextPaymentDue.toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
                         })}
                       </p>
                     </div>
@@ -262,28 +284,34 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
 
               {/* Additional Info */}
               <div>
-                <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Additional Information
+                </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-sm">Collateral Status</span>
                     <span className="font-semibold">
-                      {loan.hasCollateral ? '🔒 Secured' : '📄 Unsecured'}
+                      {loan.hasCollateral ? "🔒 Secured" : "📄 Unsecured"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span className="text-sm">Late Payments</span>
                     <span className="font-semibold">
                       {loan.latePaymentCount > 0 ? (
-                        <span className="text-red-600">{loan.latePaymentCount}</span>
+                        <span className="text-red-600">
+                          {loan.latePaymentCount}
+                        </span>
                       ) : (
                         <span className="text-green-600">None</span>
                       )}
                     </span>
                   </div>
-                  {loan.circleId !== '0' && (
+                  {loan.circleId !== "0" && (
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <span className="text-sm">Lending Circle</span>
-                      <span className="font-semibold">Circle #{loan.circleId}</span>
+                      <span className="font-semibold">
+                        Circle #{loan.circleId}
+                      </span>
                     </div>
                   )}
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -295,29 +323,41 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
 
               {/* Financial Summary */}
               <Card className="p-4 bg-gradient-to-r from-blue-50 to-purple-50">
-                <h3 className="text-lg font-semibold mb-4">Financial Summary</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Financial Summary
+                </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Original Principal:</span>
-                    <span className="font-semibold">{formatCurrency(loan.principalAmount)}</span>
+                    <span className="font-semibold">
+                      {formatCurrency(loan.principalAmount)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Total Interest:</span>
-                    <span className="font-semibold">{formatCurrency(loan.totalInterest)}</span>
+                    <span className="font-semibold">
+                      {formatCurrency(loan.totalInterest)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t">
                     <span className="text-gray-600">Total to Repay:</span>
                     <span className="font-semibold">
-                      {formatCurrency(loan.principalAmount + loan.totalInterest)}
+                      {formatCurrency(
+                        loan.principalAmount + loan.totalInterest
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm text-green-600">
                     <span className="font-semibold">Amount Repaid:</span>
-                    <span className="font-semibold">{formatCurrency(loan.totalRepaid)}</span>
+                    <span className="font-semibold">
+                      {formatCurrency(loan.totalRepaid)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm text-blue-600 pt-2 border-t">
                     <span className="font-semibold">Amount Remaining:</span>
-                    <span className="font-semibold">{formatCurrency(loan.remainingAmount)}</span>
+                    <span className="font-semibold">
+                      {formatCurrency(loan.remainingAmount)}
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -325,27 +365,35 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
           )}
 
           {/* Schedule Tab */}
-          {activeTab === 'schedule' && (
-            <RepaymentSchedule schedule={paymentSchedule} assetSymbol={loan.assetSymbol} />
+          {activeTab === "schedule" && (
+            <RepaymentSchedule
+              schedule={paymentSchedule}
+              assetSymbol={loan.assetSymbol}
+            />
           )}
 
           {/* Payment History Tab */}
-          {activeTab === 'history' && (
+          {activeTab === "history" && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Payment History</h3>
               <div className="space-y-3">
                 {paymentSchedule
                   .filter((item) => item.isPaid)
                   .map((item) => (
-                    <Card key={item.installmentNumber} className="p-4 bg-green-50">
+                    <Card
+                      key={item.installmentNumber}
+                      className="p-4 bg-green-50"
+                    >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-semibold">Payment #{item.installmentNumber}</p>
+                          <p className="font-semibold">
+                            Payment #{item.installmentNumber}
+                          </p>
                           <p className="text-sm text-gray-600">
-                            {item.dueDate.toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
+                            {item.dueDate.toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
                             })}
                           </p>
                         </div>
@@ -354,8 +402,8 @@ export function LoanDetails({ loanId }: LoanDetailsProps) {
                             {formatCurrency(item.totalAmount)}
                           </p>
                           <p className="text-xs text-gray-600">
-                            Principal: {formatCurrency(item.principalAmount)} | Interest:{' '}
-                            {formatCurrency(item.interestAmount)}
+                            Principal: {formatCurrency(item.principalAmount)} |
+                            Interest: {formatCurrency(item.interestAmount)}
                           </p>
                         </div>
                       </div>
