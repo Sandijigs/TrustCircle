@@ -29,7 +29,7 @@ export function MyLoans({ onRequestLoan }: MyLoansProps) {
   const router = useRouter();
   const { address } = useAccount();
   const { borrowerLoanIds, activeLoanCount, isLoading } = useLoan();
-  const { loans, isLoading: loansLoading } = useLoans(borrowerLoanIds);
+  const { loans, isLoading: loansLoading, error: loansError } = useLoans(borrowerLoanIds);
 
   const [filter, setFilter] = useState<LoanFilter>('all');
   const [filteredLoans, setFilteredLoans] = useState<LoanDisplay[]>([]);
@@ -103,6 +103,22 @@ export function MyLoans({ onRequestLoan }: MyLoansProps) {
         <div className="flex items-center justify-center">
           <LoadingSpinner size="lg" />
           <span className="ml-3 text-gray-600">Loading your loans...</span>
+        </div>
+      </Card>
+    );
+  }
+
+  // Show error if loan fetching failed
+  if (loansError) {
+    return (
+      <Card className="p-8">
+        <div className="text-center">
+          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Loans</h3>
+          <p className="text-sm text-gray-600 mb-4">{loansError}</p>
+          <p className="text-xs text-gray-500">
+            Please check the browser console for more details or try refreshing the page.
+          </p>
         </div>
       </Card>
     );

@@ -1,15 +1,18 @@
 /**
  * LoanCard Component
- * 
+ *
  * Displays a summary card for a loan
  */
 
-'use client';
+"use client";
 
-import { LoanDisplay, LoanStatus } from '@/types/loan';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { formatCurrency, formatPercentage } from '@/lib/calculations/loanCalculator';
+import { LoanDisplay, LoanStatus } from "@/types/loan";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import {
+  formatCurrency,
+  formatPercentage,
+} from "@/lib/calculations/loanCalculator";
 
 interface LoanCardProps {
   loan: LoanDisplay;
@@ -17,31 +20,36 @@ interface LoanCardProps {
   onMakePayment?: () => void;
 }
 
-export function LoanCard({ loan, onViewDetails, onMakePayment }: LoanCardProps) {
+export function LoanCard({
+  loan,
+  onViewDetails,
+  onMakePayment,
+}: LoanCardProps) {
   const getStatusColor = (status: LoanStatus): string => {
     switch (status) {
       case LoanStatus.Pending:
-        return 'bg-yellow-100 text-yellow-800';
+        return "bg-yellow-100 text-yellow-800";
       case LoanStatus.Approved:
-        return 'bg-blue-100 text-blue-800';
+        return "bg-blue-100 text-blue-800";
       case LoanStatus.Active:
-        return 'bg-green-100 text-green-800';
+        return "bg-green-100 text-green-800";
       case LoanStatus.Completed:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
       case LoanStatus.Defaulted:
-        return 'bg-red-100 text-red-800';
+        return "bg-red-100 text-red-800";
       case LoanStatus.Cancelled:
-        return 'bg-gray-100 text-gray-600';
+        return "bg-gray-100 text-gray-600";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const isActive = loan.status === LoanStatus.Active;
-  const showPaymentButton = isActive && loan.paidInstallments < loan.totalInstallments;
+  const showPaymentButton =
+    isActive && loan.paidInstallments < loan.totalInstallments;
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow">
+    <Card className="p-6 hover:shadow-lg transition-shadow text-gray-500">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-xl font-bold">
@@ -63,7 +71,9 @@ export function LoanCard({ loan, onViewDetails, onMakePayment }: LoanCardProps) 
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-1">
             <span className="text-gray-600">Repayment Progress</span>
-            <span className="font-semibold">{formatPercentage(loan.progressPercentage, 0)}</span>
+            <span className="font-semibold">
+              {formatPercentage(loan.progressPercentage, 0)}
+            </span>
           </div>
           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
@@ -96,7 +106,9 @@ export function LoanCard({ loan, onViewDetails, onMakePayment }: LoanCardProps) 
         </div>
         <div>
           <p className="text-xs text-gray-500">Installment</p>
-          <p className="font-semibold">{formatCurrency(loan.installmentAmount)}</p>
+          <p className="font-semibold">
+            {formatCurrency(loan.installmentAmount)}
+          </p>
         </div>
       </div>
 
@@ -104,17 +116,19 @@ export function LoanCard({ loan, onViewDetails, onMakePayment }: LoanCardProps) 
       {isActive && (
         <div
           className={`p-3 rounded-lg mb-4 ${
-            loan.isLate ? 'bg-red-50 border border-red-200' : 'bg-blue-50 border border-blue-200'
+            loan.isLate
+              ? "bg-red-50 border border-red-200"
+              : "bg-blue-50 border border-blue-200"
           }`}
         >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-600">Next Payment Due</p>
               <p className="font-semibold">
-                {loan.nextPaymentDue.toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
+                {loan.nextPaymentDue.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
                 })}
               </p>
               {loan.isLate && (
@@ -137,7 +151,8 @@ export function LoanCard({ loan, onViewDetails, onMakePayment }: LoanCardProps) 
       {loan.isLate && loan.latePaymentCount > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mb-4">
           <p className="text-xs text-yellow-800">
-            ⚠️ You have {loan.latePaymentCount} late payment(s). This affects your credit score.
+            ⚠️ You have {loan.latePaymentCount} late payment(s). This affects
+            your credit score.
           </p>
         </div>
       )}
@@ -158,7 +173,11 @@ export function LoanCard({ loan, onViewDetails, onMakePayment }: LoanCardProps) 
             Make Payment
           </Button>
         )}
-        <Button onClick={onViewDetails} variant="secondary" className={showPaymentButton ? '' : 'flex-1'}>
+        <Button
+          onClick={onViewDetails}
+          variant="secondary"
+          className={showPaymentButton ? "" : "flex-1"}
+        >
           View Details
         </Button>
       </div>
@@ -174,7 +193,9 @@ export function LoanCard({ loan, onViewDetails, onMakePayment }: LoanCardProps) 
           </div>
           <div className="flex justify-between text-sm mt-1">
             <span className="text-gray-600">Total Interest Paid:</span>
-            <span className="font-semibold">{formatCurrency(loan.interestPaid)}</span>
+            <span className="font-semibold">
+              {formatCurrency(loan.interestPaid)}
+            </span>
           </div>
         </div>
       )}

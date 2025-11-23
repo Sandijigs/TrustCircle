@@ -477,49 +477,176 @@ export function useLoan(loanId?: bigint) {
 }
 
 /**
- * Hook to fetch multiple loans
+ * Hook to fetch multiple loans using wagmi's useReadContract
+ * This approach uses proper ABI encoding/decoding and better error handling
  */
 export function useLoans(loanIds: bigint[]) {
   const [loans, setLoans] = useState<LoanDisplay[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const LOAN_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_LOAN_MANAGER_ADDRESS as `0x${string}`;
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchLoans = async () => {
-      if (loanIds.length === 0) {
-        setLoans([]);
-        return;
-      }
+    console.log('🔍 useLoans - loan IDs:', loanIds);
 
+    if (!loanIds || loanIds.length === 0) {
+      console.log('📭 No loan IDs provided');
+      setLoans([]);
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchAllLoans = async () => {
       setIsLoading(true);
+      setError(null);
+
+      console.log(`📊 Fetching ${loanIds.length} loans from contract at ${LOAN_MANAGER_ADDRESS}`);
 
       try {
+        // Use Promise.allSettled to handle individual loan failures gracefully
         const loanPromises = loanIds.map(async (loanId) => {
-          const data = await window.ethereum?.request({
-            method: 'eth_call',
-            params: [{
-              to: LOAN_MANAGER_ADDRESS,
-              data: `0xc92aecc4${loanId.toString(16).padStart(64, '0')}`, // getLoan(uint256)
-            }, 'latest'],
-          });
+          console.log(`🔄 Fetching loan ID: ${loanId.toString()}`);
 
-          // Parse loan data (simplified - would need proper ABI decoding)
-          // In production, use viem's decodeFunctionResult
-          return data;
+          try {
+            // Use viem's readContract for proper ABI handling
+            const { createPublicClient, http } = await import('viem');
+            const { celoSepolia } = await import('@/config/wagmi');
+
+            const publicClient = createPublicClient({
+              chain: celoSepolia,
+              transport: http('https://forno.celo-sepolia.celo-testnet.org'),
+            });
+
+            const loanData = await publicClient.readContract({
+              address: LOAN_MANAGER_ADDRESS,
+              abi: LOAN_MANAGER_ABI,
+              functionName: 'getLoan',
+              args: [loanId],
+            }) as Loan;
+
+            console.log(`📥 Raw loan data for loan ${loanId}:`, loanData);
+
+            // Check if loan exists (id should not be 0)
+            if (!loanData || loanData.id === 0n) {
+              console.warn(`⚠️ Loan ${loanId} does not exist (returned id is 0)`);
+              return null;
+            }
+
+            console.log(`📄 Valid loan ${loanId}:`, {
+              id: loanData.id.toString(),
+              borrower: loanData.borrower,
+              asset: loanData.asset,
+              principal: loanData.principalAmount.toString(),
+              status: loanData.status,
+            });
+
+            // Format the loan data inline
+            const assetAddress = loanData.asset.toLowerCase();
+            let assetSymbol = 'cUSD';
+            if (assetAddress === '0x10c892a6ec43a53e45d0b916b4b7d383b1b78c0f') {
+              assetSymbol = 'cEUR';
+            } else if (assetAddress === '0xe4d517785d091d3c54818832db6094bcc2744545') {
+              assetSymbol = 'cREAL';
+            }
+
+            const decimals = 18;
+            const principalAmount = Number(formatUnits(loanData.principalAmount, decimals));
+            const installmentAmount = Number(formatUnits(loanData.installmentAmount, decimals));
+            const totalRepaid = Number(formatUnits(loanData.totalRepaid, decimals));
+            const interestPaid = Number(formatUnits(loanData.interestPaid, decimals));
+            const interestRate = Number(loanData.interestRate) / 100; // Convert BPS to percentage
+            const duration = Number(loanData.duration) / 86400; // Convert seconds to days
+            const totalInstallments = Number(loanData.totalInstallments);
+            const paidInstallments = Number(loanData.paidInstallments);
+
+            const totalInterest = calculateTotalInterest(
+              principalAmount,
+              installmentAmount,
+              totalInstallments
+            );
+
+            const apr = calculateAPR(principalAmount, totalInterest, duration);
+            const remainingAmount = principalAmount - totalRepaid;
+            const progressPercentage = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
+
+            const startTime = new Date(Number(loanData.startTime) * 1000);
+            const nextPaymentDue = new Date(Number(loanData.nextPaymentDue) * 1000);
+
+            const formattedLoan: LoanDisplay = {
+              id: loanData.id.toString(),
+              borrower: loanData.borrower,
+              asset: loanData.asset,
+              assetSymbol,
+              principalAmount,
+              interestRate,
+              duration,
+              durationInMonths: daysToMonths(duration),
+              frequency: loanData.frequency,
+              frequencyLabel: PAYMENT_FREQUENCY_LABELS[loanData.frequency],
+              installmentAmount,
+              totalInstallments,
+              paidInstallments,
+              totalRepaid,
+              interestPaid,
+              startTime,
+              nextPaymentDue,
+              status: loanData.status,
+              statusLabel: LOAN_STATUS_LABELS[loanData.status],
+              hasCollateral: loanData.hasCollateral,
+              latePaymentCount: Number(loanData.latePaymentCount),
+              circleId: loanData.circleId.toString(),
+              remainingAmount,
+              progressPercentage,
+              isLate: false,
+              daysLate: 0,
+              totalInterest,
+              apr,
+            };
+
+            console.log(`✅ Successfully formatted loan ${loanId}:`, formattedLoan);
+
+            return formattedLoan;
+          } catch (error) {
+            console.error(`❌ Error fetching loan ${loanId}:`, error);
+            if (error && typeof error === 'object') {
+              console.error(`   Error details:`, JSON.stringify(error, null, 2));
+            }
+            return null;
+          }
         });
 
-        await Promise.all(loanPromises);
-        // Would decode and set loans here
+        const results = await Promise.allSettled(loanPromises);
+
+        const validLoans = results
+          .filter((result): result is PromiseFulfilledResult<LoanDisplay | null> =>
+            result.status === 'fulfilled' && result.value !== null
+          )
+          .map(result => result.value as LoanDisplay);
+
+        console.log(`📊 Successfully fetched ${validLoans.length} out of ${loanIds.length} loans`);
+        if (validLoans.length > 0) {
+          console.log('✅ Valid loans:', validLoans);
+        }
+
+        // Log any rejections
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.error(`❌ Loan ${loanIds[index]} completely failed:`, result.reason);
+          }
+        });
+
+        setLoans(validLoans);
         setIsLoading(false);
-      } catch (err) {
-        console.error('Error fetching loans:', err);
+      } catch (error) {
+        console.error('❌ Critical error fetching all loans:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch loans';
+        setError(errorMessage);
+        setLoans([]);
         setIsLoading(false);
       }
     };
 
-    fetchLoans();
-  }, [loanIds, LOAN_MANAGER_ADDRESS]);
+    fetchAllLoans();
+  }, [loanIds]);
 
-  return { loans, isLoading };
+  return { loans, isLoading, error };
 }
