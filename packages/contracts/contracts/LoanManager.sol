@@ -140,7 +140,7 @@ contract LoanManager is
     mapping(uint256 => Loan) public loans;
 
     // Mapping: borrower => loanIds[]
-    mapping(address => uint256[]) public borrowerLoans;
+    mapping(address => uint256[]) private borrowerLoans;
 
     // Mapping: borrower => active loan count
     mapping(address => uint256) public activeLoanCount;

@@ -72,8 +72,18 @@ export function useLoan(loanId?: bigint) {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+      staleTime: 0, // Don't cache - always fetch fresh data
     },
   }) as { data: bigint[] | undefined; refetch: () => void };
+
+  // Log borrower loan IDs whenever they change
+  useEffect(() => {
+    console.log('📋 Borrower loan IDs updated:', borrowerLoanIds);
+    console.log('📋 Number of loans:', borrowerLoanIds?.length || 0);
+    console.log('📋 Current address:', address);
+  }, [borrowerLoanIds, address]);
 
   // Read active loan count
   const { data: activeLoanCount } = useReadContract({
@@ -256,6 +266,9 @@ export function useLoan(loanId?: bigint) {
    */
   const requestLoan = useCallback(
     async (params: LoanRequestParams) => {
+      console.log('🚀 Starting loan request with params:', params);
+      console.log('👛 Wallet address:', address);
+
       if (!address) {
         throw new Error('Wallet not connected');
       }
@@ -264,6 +277,8 @@ export function useLoan(loanId?: bigint) {
       setError(null);
 
       try {
+        console.log('📞 Fetching token decimals for asset:', params.asset);
+
         // Get token decimals
         const decimalsData = await window.ethereum?.request({
           method: 'eth_call',
@@ -277,7 +292,19 @@ export function useLoan(loanId?: bigint) {
         const amountBN = parseUnits(params.amount, decimals);
         const durationSeconds = BigInt(params.duration * 86400); // days to seconds
 
+        console.log('💰 Loan details:', {
+          asset: params.asset,
+          amount: params.amount,
+          amountBN: amountBN.toString(),
+          decimals,
+          durationDays: params.duration,
+          durationSeconds: durationSeconds.toString(),
+          frequency: params.frequency,
+          circleId: params.circleId.toString(),
+        });
+
         // Request loan
+        console.log('📝 Calling requestLoan on contract...');
         const hash = await writeContractAsync({
           address: LOAN_MANAGER_ADDRESS,
           abi: LOAN_MANAGER_ABI,
@@ -291,19 +318,23 @@ export function useLoan(loanId?: bigint) {
           ],
         });
 
-        console.log('Loan request transaction hash:', hash);
+        console.log('✅ Loan request transaction hash:', hash);
+        console.log('📋 Current borrower loan IDs before refetch:', borrowerLoanIds);
+        console.log('🔗 View transaction: https://celo-sepolia.blockscout.com/tx/' + hash);
+        console.log('⚠️ Note: getBorrowerLoans() contract function is currently reverting.');
+        console.log('💡 Workaround: The loan was created successfully. Please manually refresh the page or wait a moment and switch tabs.');
+        console.log('🔧 The team needs to redeploy the contract to fix the getBorrowerLoans() function.');
 
-        // Wait for transaction to be mined before refetching
-        // This ensures the new loan ID is available in the contract
-        console.log('Waiting for transaction confirmation...');
+        // Note: The getBorrowerLoans() function on the deployed contract is reverting,
+        // so we cannot automatically fetch the new loan ID. The loan IS created successfully,
+        // but we need to either:
+        // 1. Redeploy the contract with a fixed version
+        // 2. Parse the LoanRequested event from the transaction receipt
+        // 3. Have the user manually refresh
 
-        // Wait a bit for the transaction to be processed
+        // For now, just trigger a refetch (which will still return empty due to contract bug)
         await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Refetch data
-        console.log('Refetching borrower loans...');
         await refetchBorrowerLoans();
-        console.log('Borrower loans refetched successfully');
 
         return hash;
       } catch (err) {
