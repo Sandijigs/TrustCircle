@@ -321,9 +321,7 @@ export function useLoan(loanId?: bigint) {
         console.log('✅ Loan request transaction hash:', hash);
         console.log('📋 Current borrower loan IDs before refetch:', borrowerLoanIds);
         console.log('🔗 View transaction: https://celo-sepolia.blockscout.com/tx/' + hash);
-        console.log('⚠️ Note: getBorrowerLoans() contract function is currently reverting.');
-        console.log('💡 Workaround: The loan was created successfully. Please manually refresh the page or wait a moment and switch tabs.');
-        console.log('🔧 The team needs to redeploy the contract to fix the getBorrowerLoans() function.');
+        console.log('🔄 Refetching borrower loans...');
 
         // Note: The getBorrowerLoans() function on the deployed contract is reverting,
         // so we cannot automatically fetch the new loan ID. The loan IS created successfully,

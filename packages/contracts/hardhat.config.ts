@@ -15,7 +15,28 @@ if (result.error) {
   console.error("Error loading .env:", result.error);
 } else {
   console.log("✅ .env loaded successfully");
-  console.log("PRIVATE_KEY found:", !!process.env.PRIVATE_KEY);
+  // Debug: Check if PRIVATE_KEY is actually loaded
+  if (process.env.PRIVATE_KEY) {
+    console.log("✅ PRIVATE_KEY found in environment");
+  } else {
+    console.warn("⚠️ PRIVATE_KEY not found after loading .env");
+  }
+}
+
+// Load private key from .env file
+function getAccounts(): string[] {
+  if (!process.env.PRIVATE_KEY) {
+    console.warn("⚠️  PRIVATE_KEY not set in .env file");
+    console.warn("   Add PRIVATE_KEY=0x... to your .env file");
+    return [];
+  }
+
+  const privateKey = process.env.PRIVATE_KEY.startsWith('0x')
+    ? process.env.PRIVATE_KEY
+    : `0x${process.env.PRIVATE_KEY}`;
+
+  console.log("✅ Wallet loaded from .env file");
+  return [privateKey];
 }
 
 const config: HardhatUserConfig = {
@@ -33,16 +54,18 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 31337,
     },
-    // Celo Sepolia Testnet (NEW - Replaces Alfajores)
+    // Celo Sepolia Testnet (Recommended for new deployments)
     celoSepolia: {
       url: "https://forno.celo-sepolia.celo-testnet.org",
-      accounts: ["0xacc64cd4bc583eb8b61522b036693c0567064b4a00c1b69e2a88bdc50f915807"],
+      accounts: getAccounts(),
       chainId: 11142220,
+      // Let network auto-estimate gas price
+      timeout: 60000,
     },
     // Legacy: Celo Alfajores Testnet (Being phased out)
     alfajores: {
-      url: process.env.NEXT_PUBLIC_ALFAJORES_RPC_URL || "https://alfajores-forno.celo-testnet.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      url: "https://alfajores-forno.celo-testnet.org",
+      accounts: getAccounts(),
       chainId: 44787,
       gasPrice: 20000000000, // 20 gwei
       timeout: 60000,
@@ -50,12 +73,7 @@ const config: HardhatUserConfig = {
     // Celo Mainnet
     celo: {
       url: "https://forno.celo.org",
-      accounts: {
-        mnemonic: process.env.MNEMONIC || "",
-        path: "m/44'/52752'/0'/0", // Celo derivation path
-        initialIndex: 0,
-        count: 10,
-      },
+      accounts: getAccounts(),
       chainId: 42220,
     },
   },

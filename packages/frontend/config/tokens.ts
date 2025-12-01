@@ -40,22 +40,22 @@ export const CELO_MAINNET_TOKENS: Record<string, Token> = {
 };
 
 // Celo Sepolia Testnet (11142220) Mento Stablecoins - NEW TESTNET
-// NOTE: Using Alfajores token addresses as Sepolia uses same testnet tokens
+// Updated to match deployed contract token addresses
 export const CELO_SEPOLIA_TOKENS: Record<string, Token> = {
   cUSD: {
-    address: "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
+    address: "0xdE9e4C3ce781b4bA68120d6261cbad65ce0aB00b",
     symbol: "cUSD",
     name: "Celo Dollar (Testnet)",
     decimals: 18,
   },
   cEUR: {
-    address: "0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
+    address: "0xA99dC247d6b7B2E3ab48a1fEE101b83cD6aCd82a",
     symbol: "cEUR",
     name: "Celo Euro (Testnet)",
     decimals: 18,
   },
   cREAL: {
-    address: "0xE4D517785D091D3c54818832dB6094bcc2744545",
+    address: "0x2294298942fdc79417DE9E0D740A4957E0e7783a",
     symbol: "cREAL",
     name: "Celo Real (Testnet)",
     decimals: 18,
