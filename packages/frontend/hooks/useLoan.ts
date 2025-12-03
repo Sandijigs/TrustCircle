@@ -684,7 +684,7 @@ export function useLoans(loanIds: bigint[]) {
     };
 
     fetchAllLoans();
-  }, [JSON.stringify(loanIds)]); // Stringify to ensure dependency changes when array content changes
+  }, [loanIds.map(id => id.toString()).join(',')]); // Convert BigInt to string before stringifying
 
   return { loans, isLoading, error };
 }

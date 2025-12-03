@@ -4,7 +4,7 @@ import path from "path";
 const nextConfig: NextConfig = {
   /* Config options here */
   reactStrictMode: true,
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     // Fix for web3 libraries
     config.resolve.fallback = {
       fs: false,
@@ -30,9 +30,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   // Silence workspace root warning
-  experimental: {
-    outputFileTracingRoot: path.join(__dirname, '../../'),
-  },
+  outputFileTracingRoot: path.join(__dirname, '../../'),
 };
 
 export default nextConfig;
