@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  experimental: {
+    // Fix for React 19 SSR issues
+    reactCompiler: false,
+  },
   webpack: (config) => {
     // Fix for web3 libraries
     config.resolve.fallback = {
