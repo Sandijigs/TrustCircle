@@ -1,4 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install --legacy-peer-deps"
+  "buildCommand": "npm run build:frontend",
+  "installCommand": "npm install --legacy-peer-deps",
+  "outputDirectory": "packages/frontend/.next"
 }
