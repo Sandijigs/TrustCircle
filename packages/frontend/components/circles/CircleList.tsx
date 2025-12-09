@@ -1,6 +1,6 @@
 /**
  * CircleList Component
- * 
+ *
  * Browse and search lending circles
  * Filter by status, size, credit score requirements
  */
@@ -8,23 +8,31 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useAccount } from 'wagmi';
 import { Input, Select } from '@/components/forms';
 import { CircleCard } from './CircleCard';
 import { JoinCircleModal } from './JoinCircleModal';
-import type { Circle } from '@/hooks/useLendingCircle';
+import { useAllCircles, useUserCircles } from '@/hooks/useCircles';
+import type { CircleDisplay } from '@/lib/circles/types';
 
 interface CircleListProps {
-  circles?: Circle[];
-  isLoading?: boolean;
   filter?: 'all' | 'my-circles';
 }
 
-export function CircleList({ circles = [], isLoading, filter = 'all' }: CircleListProps) {
+export function CircleList({ filter = 'all' }: CircleListProps) {
+  const { address } = useAccount();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
-  const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
+  const [selectedCircle, setSelectedCircle] = useState<CircleDisplay | null>(null);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+
+  // Fetch circles based on filter
+  const { circles: allCircles, isLoading: loadingAll } = useAllCircles();
+  const { userCircles, isLoading: loadingUser } = useUserCircles(address);
+
+  const circles = filter === 'my-circles' ? userCircles : allCircles;
+  const isLoading = filter === 'my-circles' ? loadingUser : loadingAll;
 
   // Filter circles
   const filteredCircles = useMemo(() => {
@@ -41,7 +49,7 @@ export function CircleList({ circles = [], isLoading, filter = 'all' }: CircleLi
       }
 
       // Status filter
-      if (statusFilter !== 'all' && circle.status !== statusFilter) {
+      if (statusFilter !== 'all' && circle.statusLabel !== statusFilter) {
         return false;
       }
 
@@ -61,8 +69,8 @@ export function CircleList({ circles = [], isLoading, filter = 'all' }: CircleLi
   const sortedCircles = useMemo(() => {
     return [...filteredCircles].sort((a, b) => {
       // Open circles first
-      const aOpen = a.memberCount < a.maxMembers && a.status === 'Active' ? 1 : 0;
-      const bOpen = b.memberCount < b.maxMembers && b.status === 'Active' ? 1 : 0;
+      const aOpen = !a.isFull && a.statusLabel === 'Active' ? 1 : 0;
+      const bOpen = !b.isFull && b.statusLabel === 'Active' ? 1 : 0;
       if (aOpen !== bOpen) return bOpen - aOpen;
 
       // Then by member count (descending)
@@ -70,7 +78,7 @@ export function CircleList({ circles = [], isLoading, filter = 'all' }: CircleLi
     });
   }, [filteredCircles]);
 
-  const handleJoinClick = (circle: Circle) => {
+  const handleJoinClick = (circle: CircleDisplay) => {
     setSelectedCircle(circle);
     setIsJoinModalOpen(true);
   };
