@@ -43,8 +43,6 @@ const nextConfig: NextConfig = {
     
     return config;
   },
-  // Silence workspace root warning
-  outputFileTracingRoot: path.join(__dirname, '../../'),
 };
 
 export default nextConfig;
