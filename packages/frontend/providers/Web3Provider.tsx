@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createAppKit } from "@reown/appkit/react";
@@ -19,48 +19,54 @@ if (!projectId) {
 const metadata = {
   name: "TrustCircle",
   description: "Web3 Micro-Lending Platform on Celo",
-  url: typeof window !== 'undefined' ? window.location.origin : "https://trustcircle.finance",
+  url: "https://trustcircle.finance",
   icons: ["https://trustcircle.finance/icon.png"],
 };
 
-// Define chains for AppKit
-const chains = [celoSepolia, celoAlfajores, celo] as const;
+// Define chains for AppKit (use array, not const assertion to avoid readonly issues)
+const chains = [celoSepolia, celoAlfajores, celo];
 
 // Create Wagmi adapter for AppKit (singleton)
 let wagmiAdapter: WagmiAdapter | null = null;
+let appKitInitialized = false;
 
 function getWagmiAdapter() {
   if (!wagmiAdapter) {
     wagmiAdapter = new WagmiAdapter({
-      networks: chains,
+      networks: chains as any,
       projectId,
       ssr: true,
     });
-
-    // Create AppKit instance (Web3Modal v3) - only once
-    if (typeof window !== 'undefined') {
-      createAppKit({
-        adapters: [wagmiAdapter],
-        networks: chains,
-        projectId,
-        metadata,
-        features: {
-          analytics: true,
-          email: false,
-          socials: false,
-        },
-        themeMode: 'light',
-        themeVariables: {
-          '--w3m-accent': '#6366f1', // Primary indigo color
-          '--w3m-border-radius-master': '8px',
-        },
-      });
-    }
   }
   return wagmiAdapter;
 }
 
+function initializeAppKit() {
+  if (!appKitInitialized && typeof window !== 'undefined') {
+    const adapter = getWagmiAdapter();
+    createAppKit({
+      adapters: [adapter],
+      networks: chains as any,
+      projectId,
+      metadata,
+      features: {
+        analytics: true,
+        email: false,
+        socials: false,
+      },
+      themeMode: 'light',
+      themeVariables: {
+        '--w3m-accent': '#6366f1', // Primary indigo color
+        '--w3m-border-radius-master': '8px',
+      },
+    });
+    appKitInitialized = true;
+  }
+}
+
 export function Web3Provider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+
   // Create QueryClient inside component to avoid SSR issues
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
@@ -71,7 +77,18 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     },
   }));
 
+  // Initialize AppKit on client side only, before rendering children
+  useEffect(() => {
+    initializeAppKit();
+    setMounted(true);
+  }, []);
+
   const adapter = getWagmiAdapter();
+
+  // Don't render children until AppKit is initialized on client
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <WagmiProvider config={adapter.wagmiConfig}>

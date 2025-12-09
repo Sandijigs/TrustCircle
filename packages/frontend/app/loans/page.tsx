@@ -7,6 +7,8 @@
 
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { MainLayout } from '@/components/layout';
 import { MyLoans } from '@/components/borrow/MyLoans';
 import { ConnectWalletPrompt } from '@/components/wallet/ConnectWalletPrompt';
