@@ -16,12 +16,19 @@ if (!projectId) {
 }
 
 // Metadata for WalletConnect
-const metadata = {
+// Use environment variable or window.location.origin for proper URL matching
+const getMetadata = () => ({
   name: "TrustCircle",
   description: "Web3 Micro-Lending Platform on Celo",
-  url: "https://trustcircle.finance",
-  icons: ["https://trustcircle.finance/icon.png"],
-};
+  url: typeof window !== 'undefined'
+    ? window.location.origin
+    : process.env.NEXT_PUBLIC_APP_URL || "https://frontend-seven-alpha-99.vercel.app",
+  icons: [
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/icon.png`
+      : "https://frontend-seven-alpha-99.vercel.app/icon.png"
+  ],
+});
 
 // Define chains for AppKit (use array, not const assertion to avoid readonly issues)
 const chains = [celoSepolia, celoAlfajores, celo];
@@ -48,7 +55,7 @@ function initializeAppKit() {
       adapters: [adapter],
       networks: chains as any,
       projectId,
-      metadata,
+      metadata: getMetadata(),
       features: {
         analytics: true,
         email: false,
@@ -61,6 +68,7 @@ function initializeAppKit() {
       },
     });
     appKitInitialized = true;
+    console.log('🔗 AppKit initialized with URL:', getMetadata().url);
   }
 }
 
