@@ -1,8 +1,5 @@
 /**
- * Verification Components Index
+ * Verification Components Exports
  */
 
-export { VerificationWizard } from './VerificationWizard';
-export { VerificationStatus } from './VerificationStatus';
-export { VerificationBadge } from './VerificationBadge';
-export { VerificationGate } from './VerificationGate';
+export { SelfXyzVerification } from './SelfXyzVerification';

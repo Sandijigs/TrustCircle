@@ -72,6 +72,16 @@ contract CreditScore is
         uint256 lastSocialUpdate;    // Last social data update
     }
 
+    struct SelfXyzVerification {
+        bool isVerified;             // Whether user verified with Self.xyz
+        bool isHuman;                // Humanity proof passed
+        bool hasAge;                 // Age disclosed and verified
+        bool hasNationality;         // Nationality disclosed
+        uint256 scoreBoost;          // Total score boost from verification
+        uint256 lastUpdated;         // Last verification update
+        string nullifier;            // Privacy-preserving unique identifier
+    }
+
     /*//////////////////////////////////////////////////////////////
                                STORAGE
     //////////////////////////////////////////////////////////////*/
@@ -84,6 +94,9 @@ contract CreditScore is
 
     // Mapping: user => SocialReputation
     mapping(address => SocialReputation) public socialReputation;
+
+    // Mapping: user => SelfXyzVerification
+    mapping(address => SelfXyzVerification) public selfVerification;
 
     // Mapping: voucher => vouchee => has vouched
     mapping(address => mapping(address => bool)) public vouches;
@@ -112,6 +125,14 @@ contract CreditScore is
         uint256 farcasterFollowers,
         uint256 vouchesReceived
     );
+    event SelfXyzVerified(
+        address indexed user,
+        string nullifier,
+        uint256 scoreBoost,
+        bool isHuman,
+        bool hasAge,
+        bool hasNationality
+    );
     event VouchGiven(address indexed voucher, address indexed vouchee);
     event VouchRemoved(address indexed voucher, address indexed vouchee);
 
@@ -123,6 +144,8 @@ contract CreditScore is
     error CannotVouchSelf();
     error AlreadyVouched();
     error NotVouched();
+    error InvalidNullifier();
+    error AlreadyVerified();
 
     /*//////////////////////////////////////////////////////////////
                            INITIALIZATION
@@ -191,6 +214,15 @@ contract CreditScore is
      */
     function getSocialReputation(address user) external view returns (SocialReputation memory) {
         return socialReputation[user];
+    }
+
+    /**
+     * @notice Gets Self.xyz verification status for a user
+     * @param user User address
+     * @return SelfXyzVerification struct
+     */
+    function getSelfVerification(address user) external view returns (SelfXyzVerification memory) {
+        return selfVerification[user];
     }
 
     /**
@@ -441,6 +473,71 @@ contract CreditScore is
         socialReputation[vouchee].vouchesReceived--;
 
         emit VouchRemoved(msg.sender, vouchee);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                   SELF PROTOCOL VERIFICATION FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Update user's Self.xyz verification
+     * @param user User address
+     * @param nullifier Privacy-preserving unique identifier
+     * @param isHuman Whether humanity proof passed
+     * @param hasAge Whether age is disclosed and verified
+     * @param hasNationality Whether nationality is disclosed
+     * @param scoreBoost Total score boost from verification
+     * @dev Only callable by AI_AGENT_ROLE or ADMIN_ROLE
+     */
+    function updateSelfVerification(
+        address user,
+        string calldata nullifier,
+        bool isHuman,
+        bool hasAge,
+        bool hasNationality,
+        uint256 scoreBoost
+    ) external onlyRole(AI_AGENT_ROLE) whenNotPaused {
+        if (bytes(nullifier).length == 0) revert InvalidNullifier();
+
+        SelfXyzVerification storage verification = selfVerification[user];
+
+        verification.isVerified = true;
+        verification.isHuman = isHuman;
+        verification.hasAge = hasAge;
+        verification.hasNationality = hasNationality;
+        verification.scoreBoost = scoreBoost;
+        verification.lastUpdated = block.timestamp;
+        verification.nullifier = nullifier;
+
+        emit SelfXyzVerified(
+            user,
+            nullifier,
+            scoreBoost,
+            isHuman,
+            hasAge,
+            hasNationality
+        );
+    }
+
+    /**
+     * @notice Calculate total credit score including Self Protocol verification boost
+     * @param user User address
+     * @return Total credit score with verification boost
+     */
+    function getCreditScoreWithVerification(address user) external view returns (uint256) {
+        Score storage userScore = scores[user];
+        uint256 baseScore = userScore.hasScore ? userScore.currentScore : DEFAULT_SCORE;
+
+        // Add Self Protocol verification boost
+        uint256 verificationBoost = selfVerification[user].scoreBoost;
+
+        // Ensure total doesn't exceed MAX_SCORE
+        uint256 totalScore = baseScore + verificationBoost;
+        if (totalScore > MAX_SCORE) {
+            totalScore = MAX_SCORE;
+        }
+
+        return totalScore;
     }
 
     /*//////////////////////////////////////////////////////////////
