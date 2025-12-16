@@ -5,7 +5,7 @@
  * Handles QR code generation, verification polling, and result processing
  */
 
-import { SelfAppBuilder } from '@selfxyz/qrcode';
+import { SelfAppBuilder, countries } from '@selfxyz/qrcode';
 import type {
   VerificationStatus,
   UserVerificationState,
@@ -77,26 +77,38 @@ export class SelfXyzClient {
       // Create verification ID (unique per attempt)
       const verificationId = `${address}-${Date.now()}`;
 
-      // Build Self app configuration
-      const selfApp = new SelfAppBuilder()
-        .setName(SELF_API_CONFIG.appName)
-        .setDescription(SELF_API_CONFIG.appDescription)
-        .setScope(SELF_API_CONFIG.scope)
-        .setBackendUrl(SELF_API_CONFIG.backendUrl)
-        .setDevMode(SELF_API_CONFIG.devMode);
-
-      // Add disclosure requirements
-      if (VERIFICATION_REQUIREMENTS.requiredDisclosures.age) {
-        selfApp.requireMinimumAge(VERIFICATION_REQUIREMENTS.minimumAge);
-      }
-
-      if (VERIFICATION_REQUIREMENTS.requiredDisclosures.nationality) {
-        selfApp.requireNationality();
-      }
-
-      if (VERIFICATION_REQUIREMENTS.requiredDisclosures.humanity) {
-        selfApp.requireHumanity();
-      }
+      // Build Self app configuration using the real SDK
+      const selfApp = new SelfAppBuilder({
+        version: 2,
+        appName: SELF_API_CONFIG.appName,
+        scope: SELF_API_CONFIG.scope,
+        endpoint: SELF_API_CONFIG.backendUrl,
+        endpointType: process.env.NODE_ENV === 'production' ? 'celo' : 'staging_celo',
+        userIdType: 'hex', // For Ethereum addresses
+        disclosures: [
+          {
+            key: 'humanity',
+            required: VERIFICATION_REQUIREMENTS.requiredDisclosures.humanity,
+          },
+          {
+            key: 'age',
+            required: VERIFICATION_REQUIREMENTS.requiredDisclosures.age,
+            minimumAge: VERIFICATION_REQUIREMENTS.minimumAge,
+          },
+          {
+            key: 'nationality',
+            required: VERIFICATION_REQUIREMENTS.requiredDisclosures.nationality,
+            allowedCountries: VERIFICATION_REQUIREMENTS.allowedCountries,
+            blockedCountries: VERIFICATION_REQUIREMENTS.blockedCountries,
+          }
+        ],
+        // Additional context for the verification
+        context: {
+          address,
+          verificationId,
+          timestamp: Date.now(),
+        }
+      });
 
       // Build the app and get QR data
       const app = selfApp.build();
